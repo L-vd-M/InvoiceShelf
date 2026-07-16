@@ -246,6 +246,7 @@ class InvoiceService
         App::setLocale($locale);
 
         $logo = $company->logo_path;
+        $logoHeight = CompanySetting::getSetting('logo_height', $company->id) ?? '50';
 
         view()->share([
             'invoice' => $invoice,
@@ -255,6 +256,7 @@ class InvoiceService
             'billing_address' => $invoice->getCustomerBillingAddress(),
             'notes' => $invoice->getNotes(),
             'logo' => $logo ?? null,
+            'logoHeight' => $logoHeight,
             'taxes' => $taxes,
         ]);
 

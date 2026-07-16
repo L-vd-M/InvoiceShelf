@@ -172,6 +172,7 @@ class PaymentService
         \App::setLocale($locale);
 
         $logo = $company->logo_path;
+        $logoHeight = CompanySetting::getSetting('logo_height', $company->id) ?? '50';
 
         view()->share([
             'payment' => $payment,
@@ -179,6 +180,7 @@ class PaymentService
             'billing_address' => $payment->getCustomerBillingAddress(),
             'notes' => $payment->getNotes(),
             'logo' => $logo ?? null,
+            'logoHeight' => $logoHeight,
         ]);
 
         if (request()->has('preview')) {

@@ -182,11 +182,13 @@ class EstimateService
         App::setLocale($locale);
 
         $logo = $company->logo_path;
+        $logoHeight = CompanySetting::getSetting('logo_height', $company->id) ?? '50';
 
         view()->share([
             'estimate' => $estimate,
             'customFields' => $customFields,
             'logo' => $logo ?? null,
+            'logoHeight' => $logoHeight,
             'company_address' => $estimate->getCompanyAddress(),
             'shipping_address' => $estimate->getCustomerShippingAddress(),
             'billing_address' => $estimate->getCustomerBillingAddress(),
