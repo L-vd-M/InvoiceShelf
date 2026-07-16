@@ -215,6 +215,7 @@ class CompanyService
             'automatically_expire_public_links' => 'YES',
             'link_expiry_days' => 7,
             'logo_height' => '50',
+            'bank_details' => '',
         ];
 
         CompanySetting::setSettings($settings, $company->id);

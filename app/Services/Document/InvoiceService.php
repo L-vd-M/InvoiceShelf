@@ -247,6 +247,7 @@ class InvoiceService
 
         $logo = $company->logo_path;
         $logoHeight = CompanySetting::getSetting('logo_height', $company->id) ?? '50';
+        $bankDetails = CompanySetting::getSetting('bank_details', $company->id) ?? '';
 
         view()->share([
             'invoice' => $invoice,
@@ -257,6 +258,7 @@ class InvoiceService
             'notes' => $invoice->getNotes(),
             'logo' => $logo ?? null,
             'logoHeight' => $logoHeight,
+            'bankDetails' => $bankDetails,
             'taxes' => $taxes,
         ]);
 

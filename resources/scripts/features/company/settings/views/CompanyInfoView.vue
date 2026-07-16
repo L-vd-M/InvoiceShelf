@@ -57,6 +57,7 @@ const logoFileBlob = ref<string | null>(null)
 const logoFileName = ref<string | null>(null)
 const isCompanyLogoRemoved = ref<boolean>(false)
 const logoHeight = ref<string>(companyStore.selectedCompanySettings.logo_height ?? '50')
+const bankDetails = ref<string>(companyStore.selectedCompanySettings.bank_details ?? '')
 
 if (companyForm.logo) {
   previewLogo.value.push({ image: companyForm.logo })
@@ -131,7 +132,12 @@ async function updateCompanyData(): Promise<void> {
   }
 
   await companyStore.updateCompanySettings({
-    data: { settings: { logo_height: logoHeight.value } },
+    data: {
+      settings: {
+        logo_height: logoHeight.value,
+        bank_details: bankDetails.value,
+      },
+    },
     message: 'general.setting_updated',
   })
 
@@ -165,6 +171,10 @@ async function updateCompanyData(): Promise<void> {
               step="5"
             />
           </div>
+        </BaseInputGroup>
+
+        <BaseInputGroup :label="$t('settings.company_info.bank_details')">
+          <BaseTextarea v-model="bankDetails" rows="4" />
         </BaseInputGroup>
       </BaseInputGrid>
 
