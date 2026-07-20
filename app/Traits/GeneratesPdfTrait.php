@@ -30,7 +30,7 @@ trait GeneratesPdfTrait
 
         $pdf = $this->getPDFData();
 
-        return response()->make($pdf->stream(), 200, [
+        return response()->make($pdf->output(), 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$this[$collection_name.'_number'].'.pdf"',
         ]);
