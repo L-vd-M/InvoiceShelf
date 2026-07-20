@@ -6,6 +6,7 @@ import NumberCustomizer from './NumberCustomizer.vue'
 import EstimatesTabExpiryDate from './EstimatesTabExpiryDate.vue'
 import EstimatesTabConvertEstimate from './EstimatesTabConvertEstimate.vue'
 import EstimatesTabDefaultFormats from './EstimatesTabDefaultFormats.vue'
+import EstimatesTabDefaultTemplate from './EstimatesTabDefaultTemplate.vue'
 
 interface Utils {
   mergeSettings: (target: Record<string, unknown>, source: Record<string, unknown>) => void
@@ -54,6 +55,8 @@ const sendAsAttachmentField = computed<boolean>({
   <EstimatesTabConvertEstimate />
   <BaseDivider class="mt-6 mb-2" />
   <EstimatesTabDefaultFormats />
+  <BaseDivider class="mt-6 mb-2" />
+  <EstimatesTabDefaultTemplate />
   <BaseDivider class="mt-6 mb-2" />
 
   <ul class="divide-y divide-line-default">
