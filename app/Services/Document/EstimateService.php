@@ -183,12 +183,14 @@ class EstimateService
 
         $logo = $company->logo_path;
         $logoHeight = CompanySetting::getSetting('logo_height', $company->id) ?? '50';
+        $bankDetails = CompanySetting::getSetting('bank_details', $company->id) ?? '';
 
         view()->share([
             'estimate' => $estimate,
             'customFields' => $customFields,
             'logo' => $logo ?? null,
             'logoHeight' => $logoHeight,
+            'bankDetails' => $bankDetails,
             'company_address' => $estimate->getCompanyAddress(),
             'shipping_address' => $estimate->getCustomerShippingAddress(),
             'billing_address' => $estimate->getCustomerBillingAddress(),
