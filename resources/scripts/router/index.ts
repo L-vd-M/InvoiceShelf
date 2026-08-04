@@ -62,6 +62,15 @@ const companyChildren: RouteRecordRaw[] = [
  * Top-level route definitions assembled from all feature modules.
  */
 const routes: RouteRecordRaw[] = [
+  // Root path has no dedicated view — the server already redirects
+  // authenticated visitors away from '/' (RedirectIfAuthenticated),
+  // so anyone reaching this client-side is a guest; send them to
+  // login instead of falling through to the catch-all 404 below.
+  {
+    path: '/',
+    redirect: '/login',
+  },
+
   // Installation wizard (no auth)
   ...installationRoutes,
 
