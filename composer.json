@@ -14,7 +14,7 @@
         "gotenberg/gotenberg-php": "^2.8",
         "guzzlehttp/guzzle": "^7.9",
         "hashids/hashids": "^5.0",
-        "invoiceshelf/modules": "3.0.3",
+        "invoiceshelf/modules": "^3.0.3",
         "laravel/framework": "^13.0",
         "laravel/helpers": "^1.7",
         "laravel/sanctum": "^4.0",
@@ -32,6 +32,9 @@
         "symfony/mailer": "^7.3",
         "symfony/mailgun-mailer": "^7.3",
         "symfony/postmark-mailer": "^7.3"
+    },
+    "conflict": {
+        "invoiceshelf/modules": ">3.0.3,<10.0.0"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.5",
