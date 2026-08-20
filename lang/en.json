@@ -1067,6 +1067,7 @@
       "company_logo": "Company Logo",
       "logo_height": "Logo Height (px)",
       "bank_details": "Banking Details",
+      "pdf_page_margin": "PDF Page Margin (px)",
       "section_description": "Information about your company that will be displayed on invoices, estimates and other documents created by InvoiceShelf.",
       "phone": "Phone",
       "country": "Country",

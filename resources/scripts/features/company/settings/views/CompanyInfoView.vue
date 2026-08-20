@@ -58,6 +58,7 @@ const logoFileName = ref<string | null>(null)
 const isCompanyLogoRemoved = ref<boolean>(false)
 const logoHeight = ref<string>(companyStore.selectedCompanySettings.logo_height ?? '50')
 const bankDetails = ref<string>(companyStore.selectedCompanySettings.bank_details ?? '')
+const pdfPageMargin = ref<string>(companyStore.selectedCompanySettings.pdf_page_margin ?? '40')
 
 if (companyForm.logo) {
   previewLogo.value.push({ image: companyForm.logo })
@@ -136,6 +137,7 @@ async function updateCompanyData(): Promise<void> {
       settings: {
         logo_height: logoHeight.value,
         bank_details: bankDetails.value,
+        pdf_page_margin: pdfPageMargin.value,
       },
     },
     message: 'general.setting_updated',
@@ -175,6 +177,18 @@ async function updateCompanyData(): Promise<void> {
 
         <BaseInputGroup :label="$t('settings.company_info.bank_details')">
           <BaseTextarea v-model="bankDetails" rows="4" />
+        </BaseInputGroup>
+
+        <BaseInputGroup :label="$t('settings.company_info.pdf_page_margin')">
+          <div class="w-full sm:w-1/2 md:w-1/4 lg:w-1/5">
+            <BaseInput
+              v-model="pdfPageMargin"
+              type="number"
+              min="10"
+              max="100"
+              step="5"
+            />
+          </div>
         </BaseInputGroup>
       </BaseInputGrid>
 
