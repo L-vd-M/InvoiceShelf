@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, computed } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { required, minLength, helpers } from '@vuelidate/validators'
 import { useVuelidate } from '@vuelidate/core'
@@ -56,9 +56,22 @@ const previewLogo = ref<FilePreview[]>([])
 const logoFileBlob = ref<string | null>(null)
 const logoFileName = ref<string | null>(null)
 const isCompanyLogoRemoved = ref<boolean>(false)
-const logoHeight = ref<string>(companyStore.selectedCompanySettings.logo_height ?? '50')
-const bankDetails = ref<string>(companyStore.selectedCompanySettings.bank_details ?? '')
-const pdfPageMargin = ref<string>(companyStore.selectedCompanySettings.pdf_page_margin ?? '40')
+const logoHeight = ref<string>('50')
+const bankDetails = ref<string>('')
+const pdfPageMargin = ref<string>('40')
+
+// selectedCompanySettings can still be populating (async bootstrap) when this
+// view mounts; a one-time ref() read would freeze these on their fallback
+// values for the rest of the session. Re-sync whenever the store catches up.
+watch(
+  () => companyStore.selectedCompanySettings,
+  (settings) => {
+    logoHeight.value = settings.logo_height ?? '50'
+    bankDetails.value = settings.bank_details ?? ''
+    pdfPageMargin.value = settings.pdf_page_margin ?? '40'
+  },
+  { immediate: true, deep: true }
+)
 
 if (companyForm.logo) {
   previewLogo.value.push({ image: companyForm.logo })
