@@ -250,6 +250,21 @@ class InvoiceService
         $bankDetails = CompanySetting::getSetting('bank_details', $company->id) ?? '';
         $pageMargin = CompanySetting::getSetting('pdf_page_margin', $company->id) ?? '40';
 
+        // Reserved top-margin height for the fixed-position header band (bank-details
+        // template): Dompdf's header/footer trick needs this decided before layout, so
+        // it can't size itself to actual rendered content automatically. Base covers the
+        // logo/company row + the Bill To/Ship To/Invoice boxes row at their shortest;
+        // add the same fixed increments the layout needed each time an optional line
+        // (VAT, customer tax number) was turned on, so simple invoices without those
+        // lines don't reserve space they don't use.
+        $headerHeight = 460;
+        if ($invoice->company->vat_id) {
+            $headerHeight += 20;
+        }
+        if ($invoice->customer->tax_id) {
+            $headerHeight += 20;
+        }
+
         view()->share([
             'invoice' => $invoice,
             'customFields' => $customFields,
@@ -261,6 +276,7 @@ class InvoiceService
             'logoHeight' => $logoHeight,
             'bankDetails' => $bankDetails,
             'pageMargin' => $pageMargin,
+            'headerHeight' => $headerHeight,
             'taxes' => $taxes,
         ]);
 
