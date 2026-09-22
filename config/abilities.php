@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Customer;
+use App\Models\CustomerCompany;
 use App\Models\CustomField;
 use App\Models\Estimate;
 use App\Models\ExchangeRateProvider;
@@ -58,6 +59,37 @@ return [
             'model' => Customer::class,
             'depends_on' => [
                 'view-customer',
+            ],
+        ],
+
+        // Customer Company
+        [
+            'name' => 'view customer company',
+            'ability' => 'view-customer-company',
+            'model' => CustomerCompany::class,
+        ],
+        [
+            'name' => 'create customer company',
+            'ability' => 'create-customer-company',
+            'model' => CustomerCompany::class,
+            'depends_on' => [
+                'view-customer-company',
+            ],
+        ],
+        [
+            'name' => 'edit customer company',
+            'ability' => 'edit-customer-company',
+            'model' => CustomerCompany::class,
+            'depends_on' => [
+                'view-customer-company',
+            ],
+        ],
+        [
+            'name' => 'delete customer company',
+            'ability' => 'delete-customer-company',
+            'model' => CustomerCompany::class,
+            'depends_on' => [
+                'view-customer-company',
             ],
         ],
 

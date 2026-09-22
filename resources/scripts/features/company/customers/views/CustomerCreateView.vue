@@ -16,11 +16,54 @@ import useVuelidate from '@vuelidate/core'
 import { useCustomerStore } from '../store'
 import { useGlobalStore } from '../../../../stores/global.store'
 import { useCompanyStore } from '../../../../stores/company.store'
+import { useNotificationStore } from '../../../../stores/notification.store'
+import { customerCompanyService } from '@/scripts/api/services/customer-company.service'
 import CustomerCustomFields from '@/scripts/features/company/customers/components/CreateCustomFields.vue'
 import CopyInputField from '@/scripts/features/company/customers/components/CopyInputField.vue'
 
 const customerStore = useCustomerStore()
 const globalStore = useGlobalStore()
+const notificationStore = useNotificationStore()
+
+// One-time client-side prefill when a company is picked -- lets the user see
+// and tweak the copied fields before saving, rather than only finding out
+// what got applied after the fact. Server-side syncCustomerCompany() is the
+// real source of truth (handles auto-update mode and re-syncs on save).
+async function onCompanySelected(companyId: number | null): Promise<void> {
+  if (!companyId) return
+
+  const response = await customerCompanyService.get(companyId)
+  const company = response.data
+  if (!company) return
+
+  customerStore.currentCustomer.company_name = company.name
+  if (company.tax_id) {
+    customerStore.currentCustomer.tax_id = company.tax_id
+  }
+  if (company.address) {
+    customerStore.currentCustomer.billing = {
+      ...customerStore.currentCustomer.billing,
+      address_street_1: company.address.address_street_1 ?? null,
+      address_street_2: company.address.address_street_2 ?? null,
+      city: company.address.city ?? null,
+      state: company.address.state ?? null,
+      country_id: company.address.country_id ?? null,
+      zip: company.address.zip ?? null,
+      phone: company.address.phone ?? null,
+    }
+  }
+}
+
+async function syncFromCompany(): Promise<void> {
+  if (!customerStore.currentCustomer.id) return
+
+  await customerCompanyService.syncCustomer(customerStore.currentCustomer.id)
+  notificationStore.showNotification({
+    type: 'success',
+    message: 'general.updated_successfully',
+  })
+  await customerStore.fetchCustomer(customerStore.currentCustomer.id)
+}
 const companyStore = useCompanyStore()
 
 const customFieldValidationScope = 'customFields'
@@ -328,6 +371,32 @@ async function submitCustomerData(): Promise<void> {
                 type="text"
                 name="tax_id"
               />
+            </BaseInputGroup>
+
+            <BaseInputGroup
+              label="Company"
+              :content-loading="isFetchingInitialData"
+            >
+              <BaseCustomerCompanySelectInput
+                v-model="customerStore.currentCustomer.customer_company_id"
+                @update:model-value="onCompanySelected"
+              />
+              <BaseCheckbox
+                v-if="customerStore.currentCustomer.customer_company_id"
+                v-model="customerStore.currentCustomer.company_auto_update"
+                class="mt-2"
+                label="Keep this customer's info synced with the company"
+                description="When the company is edited, this customer's name/tax ID/billing address update automatically. Off = a one-time copy you can edit independently."
+              />
+              <p
+                v-if="customerStore.currentCustomer.has_stale_company_info"
+                class="mt-2 text-sm text-orange-600"
+              >
+                The linked company's info has changed since this customer last synced.
+                <a href="#" class="underline" @click.prevent="syncFromCompany">
+                  Update now
+                </a>
+              </p>
             </BaseInputGroup>
           </BaseInputGrid>
         </div>

@@ -40,6 +40,11 @@ export interface CustomerForm {
   website: string | null
   prefix?: string | null
   tax_id?: string | null
+  company_name?: string | null
+  customer_company_id?: number | null
+  company_auto_update?: boolean
+  company_synced_at?: string | null
+  has_stale_company_info?: boolean
   billing: CustomerFormAddress
   shipping: CustomerFormAddress
   customFields: unknown[]
@@ -79,6 +84,8 @@ function createCustomerStub(): CustomerForm {
     customFields: [],
     fields: [],
     enable_portal: false,
+    customer_company_id: null,
+    company_auto_update: false,
   }
 }
 

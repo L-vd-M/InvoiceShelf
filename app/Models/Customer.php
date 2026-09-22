@@ -48,6 +48,8 @@ class Customer extends Authenticatable implements HasMedia
     {
         return [
             'enable_portal' => 'boolean',
+            'company_auto_update' => 'boolean',
+            'company_synced_at' => 'datetime',
         ];
     }
 
@@ -108,6 +110,36 @@ class Customer extends Authenticatable implements HasMedia
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function customerCompany(): BelongsTo
+    {
+        return $this->belongsTo(CustomerCompany::class);
+    }
+
+    /**
+     * True when this customer is linked to a CustomerCompany that has been
+     * updated more recently than this customer last pulled its info, and
+     * the customer isn't set to auto-update (auto-update customers are kept
+     * in sync immediately by CustomerCompanyObserver, so they're never stale).
+     */
+    public function hasStaleCompanyInfo(): bool
+    {
+        if ($this->company_auto_update || ! $this->customer_company_id) {
+            return false;
+        }
+
+        $company = $this->customerCompany;
+
+        if (! $company) {
+            return false;
+        }
+
+        if (! $this->company_synced_at) {
+            return true;
+        }
+
+        return $company->updated_at->gt($this->company_synced_at);
     }
 
     public function billingAddress(): HasOne

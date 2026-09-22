@@ -8,6 +8,12 @@ export const ABILITIES = {
   EDIT_CUSTOMER: 'edit-customer',
   VIEW_CUSTOMER: 'view-customer',
 
+  // Customer Companies
+  CREATE_CUSTOMER_COMPANY: 'create-customer-company',
+  DELETE_CUSTOMER_COMPANY: 'delete-customer-company',
+  EDIT_CUSTOMER_COMPANY: 'edit-customer-company',
+  VIEW_CUSTOMER_COMPANY: 'view-customer-company',
+
   // Items
   CREATE_ITEM: 'create-item',
   DELETE_ITEM: 'delete-item',

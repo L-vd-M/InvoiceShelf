@@ -22,6 +22,8 @@
   },
   "general": {
     "add_company": "Add Company",
+    "added_successfully": "Added successfully",
+    "updated_successfully": "Updated successfully",
     "view_pdf": "View PDF",
     "copy_pdf_url": "Copy PDF Url",
     "download_pdf": "Download PDF",

@@ -23,6 +23,7 @@ use App\Http\Controllers\Company\Auth\AuthController;
 use App\Http\Controllers\Company\Auth\ForgotPasswordController;
 use App\Http\Controllers\Company\Auth\InvitationRegistrationController;
 use App\Http\Controllers\Company\Auth\ResetPasswordController;
+use App\Http\Controllers\Company\Customer\CustomerCompaniesController;
 use App\Http\Controllers\Company\Customer\CustomersController;
 use App\Http\Controllers\Company\Customer\CustomerStatsController;
 use App\Http\Controllers\Company\CustomField\CustomFieldsController;
@@ -259,7 +260,14 @@ Route::prefix('/v1')->group(function () {
 
             Route::get('customers/{customer}/stats', CustomerStatsController::class);
 
+            Route::post('customers/{customer}/sync-company', [CustomersController::class, 'syncCompany']);
+
             Route::resource('customers', CustomersController::class);
+
+            // Customer Companies
+            // ----------------------------------
+
+            Route::resource('customer-companies', CustomerCompaniesController::class);
 
             // Items
             // ----------------------------------

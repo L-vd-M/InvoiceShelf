@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\CompanySetting;
 use App\Models\Customer;
+use App\Models\CustomerCompany;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -36,7 +37,32 @@ class CustomerService
             $customer->addCustomFields($customFields);
         }
 
+        $this->syncCustomerCompany($customer);
+
         return Customer::with('billingAddress', 'shippingAddress', 'fields')->find($customer->id);
+    }
+
+    /**
+     * Stamps company_synced_at whenever a customer is linked to a company (so
+     * staleness has a correct baseline), and -- only for auto-update customers
+     * -- overwrites the customer's company_name/tax_id/billing address with
+     * the company's current info. Non-auto-update customers keep whatever the
+     * form actually submitted (their one-time autofill, or a manual edit);
+     * this method never touches their fields beyond the timestamp.
+     */
+    private function syncCustomerCompany(Customer $customer): void
+    {
+        if (! $customer->customer_company_id) {
+            return;
+        }
+
+        $customer->company_synced_at = now();
+        $customer->saveQuietly();
+
+        if ($customer->company_auto_update) {
+            $customerCompany = CustomerCompany::with('address')->find($customer->customer_company_id);
+            $customerCompany?->applyTo($customer);
+        }
     }
 
     /**
@@ -73,6 +99,8 @@ class CustomerService
         if ($customFields) {
             $customer->updateCustomFields($customFields);
         }
+
+        $this->syncCustomerCompany($customer);
 
         return Customer::with('billingAddress', 'shippingAddress', 'fields')->find($customer->id);
     }

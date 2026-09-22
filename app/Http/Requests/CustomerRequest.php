@@ -41,6 +41,13 @@ class CustomerRequest extends FormRequest
             'company_name' => [
                 'nullable',
             ],
+            'customer_company_id' => [
+                'nullable',
+                Rule::exists('customer_companies', 'id')->where('company_id', $this->header('company')),
+            ],
+            'company_auto_update' => [
+                'boolean',
+            ],
             'contact_name' => [
                 'nullable',
             ],
@@ -144,6 +151,8 @@ class CustomerRequest extends FormRequest
                 'estimate_prefix',
                 'payment_prefix',
                 'invoice_prefix',
+                'customer_company_id',
+                'company_auto_update',
             ])
             ->merge([
                 'creator_id' => $this->user()->id,

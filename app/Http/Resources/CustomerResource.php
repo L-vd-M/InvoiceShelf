@@ -37,6 +37,13 @@ class CustomerResource extends JsonResource
             'base_due_amount' => $this->base_due_amount,
             'prefix' => $this->prefix,
             'tax_id' => $this->tax_id,
+            'customer_company_id' => $this->customer_company_id,
+            'company_auto_update' => $this->company_auto_update,
+            'company_synced_at' => $this->company_synced_at,
+            'has_stale_company_info' => $this->hasStaleCompanyInfo(),
+            'customer_company' => $this->when($this->customer_company_id && $this->customerCompany, function () {
+                return new CustomerCompanyResource($this->customerCompany);
+            }),
             'billing' => $this->when($this->billingAddress()->exists(), function () {
                 return new AddressResource($this->billingAddress);
             }),

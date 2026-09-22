@@ -84,6 +84,24 @@ class CustomersController extends Controller
     }
 
     /**
+     * Pull the customer's linked company's current info (name, tax id, billing
+     * address) onto this customer, and stamp company_synced_at. Used by the
+     * "company info changed" prompt for customers that aren't auto-updating.
+     *
+     * @return JsonResponse
+     */
+    public function syncCompany(Customer $customer)
+    {
+        $this->authorize('update', $customer);
+
+        if ($customer->customerCompany) {
+            $customer->customerCompany->applyTo($customer);
+        }
+
+        return new CustomerResource($customer->fresh(['billingAddress', 'shippingAddress', 'customerCompany']));
+    }
+
+    /**
      * Remove a list of Customers along side all their resources (ie. Estimates, Invoices, Payments and Addresses)
      *
      * @param  Request  $request
