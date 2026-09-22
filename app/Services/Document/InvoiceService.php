@@ -257,7 +257,7 @@ class InvoiceService
         // add the same fixed increments the layout needed each time an optional line
         // (VAT, customer tax number) was turned on, so simple invoices without those
         // lines don't reserve space they don't use.
-        $headerHeight = 460;
+        $headerHeight = 400;
         if ($invoice->company->vat_id) {
             $headerHeight += 20;
         }

@@ -37,6 +37,15 @@ const customerRoutes: RouteRecordRaw[] = [
       ability: 'view-customer',
     },
   },
+  {
+    path: 'customer-companies',
+    name: 'customer-companies.index',
+    component: () => import('./views/CustomerCompanyIndexView.vue'),
+    meta: {
+      requiresAuth: true,
+      ability: 'view-customer-company',
+    },
+  },
 ]
 
 export default customerRoutes

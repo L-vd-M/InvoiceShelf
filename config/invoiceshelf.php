@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Customer;
+use App\Models\CustomerCompany;
 use App\Models\CustomField;
 use App\Models\Estimate;
 use App\Models\ExchangeRateProvider;
@@ -335,6 +336,18 @@ return [
             'owner_only' => false,
             'ability' => 'view-customer',
             'model' => Customer::class,
+        ],
+        [
+            'title' => 'navigation.companies',
+            'group' => 'main',
+            'group_label' => '',
+            'priority' => 25,
+            'link' => '/admin/customer-companies',
+            'icon' => 'BuildingOfficeIcon',
+            'name' => 'Companies',
+            'owner_only' => false,
+            'ability' => 'view-customer-company',
+            'model' => CustomerCompany::class,
         ],
         [
             'title' => 'navigation.items',

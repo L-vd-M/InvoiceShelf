@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModalStore } from '../../stores/modal.store'
 import { useUserStore } from '../../stores/user.store'
@@ -22,6 +23,13 @@ const { t } = useI18n()
 const modalStore = useModalStore()
 const userStore = useUserStore()
 
+// BaseMultiselect only calls its async `options` loader once, on mount (or
+// when the user types a search query) -- it has no way to know a brand new
+// company was just created elsewhere, so the freshly-created item can't
+// resolve to a label and shows as a bare id instead. Bumping this key forces
+// a full remount, which re-triggers the initial load and picks it up.
+const selectKey = ref<number>(0)
+
 async function searchCustomerCompanies(search: string) {
   const response = await customerCompanyService.list({ search, limit: 'all' } as never)
   return response.data ?? []
@@ -35,6 +43,7 @@ function addCustomerCompany(): void {
     refreshData: (created: { id: number } | undefined) => {
       if (created?.id) {
         emit('update:modelValue', created.id)
+        selectKey.value += 1
       }
     },
   })
@@ -43,6 +52,7 @@ function addCustomerCompany(): void {
 
 <template>
   <BaseMultiselect
+    :key="selectKey"
     :model-value="props.modelValue"
     v-bind="$attrs"
     track-by="name"
