@@ -66,7 +66,7 @@ export interface InvoiceFormData {
   customer_id: number | null
   template_name: string | null
   invoice_date: string
-  due_date: string
+  due_date: string | null
   notes: string | null
   discount: number
   discount_type: DiscountType

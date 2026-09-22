@@ -432,6 +432,7 @@
     "add_item": "Add an Item",
     "date": "Date",
     "due_date": "Due Date",
+    "show_due_date": "Show Due Date",
     "status": "Status",
     "add_tax": "Add Tax",
     "amount": "Amount",

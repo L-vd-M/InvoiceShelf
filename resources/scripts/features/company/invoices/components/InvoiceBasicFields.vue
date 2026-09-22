@@ -38,10 +38,24 @@
         :content-loading="isLoading"
       >
         <BaseDatePicker
+          v-if="showDueDate"
           v-model="invoiceStore.newInvoice.due_date"
           :content-loading="isLoading"
           :calendar-button="true"
           calendar-button-icon="calendar"
+        />
+        <BaseCheckbox
+          v-model="showDueDate"
+          class="mt-2"
+          :label="$t('invoices.show_due_date')"
+        />
+      </BaseInputGroup>
+
+      <BaseInputGroup :content-loading="isLoading">
+        <BaseCheckbox
+          v-model="invoiceStore.newInvoice.tax_included"
+          :label="$t('settings.tax_types.tax_included')"
+          :description="$t('settings.tax_types.tax_included_description')"
         />
       </BaseInputGroup>
 
@@ -71,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { ExchangeRateConverter } from '../../../shared/document-form'
 import { useInvoiceStore } from '../store'
 import RecurringFields from './RecurringFields.vue'
@@ -98,6 +112,35 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const invoiceStore = useInvoiceStore()
+
+// due_date is nullable on the backend; unchecking this clears it so the PDF
+// omits the Due Date row entirely, rather than just hiding the field here.
+// Two-way watch (not a one-shot ref) because edit mode loads the invoice
+// asynchronously after this component mounts -- a one-shot read here would
+// freeze showDueDate on whatever due_date happened to be at setup time and
+// never reflect the real value once the fetch resolves.
+const showDueDate = ref<boolean>(!!invoiceStore.newInvoice.due_date)
+let lastDueDate: string | null = invoiceStore.newInvoice.due_date ?? null
+
+watch(
+  () => invoiceStore.newInvoice.due_date,
+  (value) => {
+    if (value) {
+      lastDueDate = value
+    }
+    showDueDate.value = !!value
+  }
+)
+
+watch(showDueDate, (visible) => {
+  if (visible) {
+    if (!invoiceStore.newInvoice.due_date) {
+      invoiceStore.newInvoice.due_date = lastDueDate
+    }
+  } else {
+    invoiceStore.newInvoice.due_date = null
+  }
+})
 
 const enableTime = computed<boolean>(() => {
   return props.companySettings?.invoice_use_time === 'YES'
