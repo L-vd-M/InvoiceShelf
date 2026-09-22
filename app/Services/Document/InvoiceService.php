@@ -271,7 +271,33 @@ class InvoiceService
             return view($templatePath);
         }
 
-        return Pdf::loadView($templatePath);
+        $pdf = Pdf::loadView($templatePath);
+
+        // Page numbers via Dompdf's canvas API (trusted PHP calling the
+        // canvas directly), not the <script type="text/php"> HTML approach
+        // -- that requires isPhpEnabled, which would let arbitrary PHP run
+        // from any HTML fed to Dompdf, including user-editable fields like
+        // invoice notes/addresses that already pass through this template
+        // unescaped. render() must run before getCanvas()/page_text(): the
+        // canvas can be swapped out mid-render() if paper size doesn't
+        // match the default, so registering page_text() beforehand risks
+        // it landing on a canvas instance that gets discarded.
+        $pdf->render();
+        $canvas = $pdf->getDomPDF()->getCanvas();
+        $fontMetrics = $pdf->getDomPDF()->getFontMetrics();
+        $font = $fontMetrics->getFont('DejaVu Sans');
+        $pageNumberText = 'Page {PAGE_NUM} of {PAGE_COUNT}';
+        $textWidth = $fontMetrics->getTextWidth('Page 99 of 99', $font, 8);
+        $canvas->page_text(
+            $canvas->get_width() - ($pageMargin ?? 40) - $textWidth,
+            $canvas->get_height() - 20,
+            $pageNumberText,
+            $font,
+            8,
+            [0.35, 0.35, 0.35]
+        );
+
+        return $pdf;
     }
 
     public function clone(Invoice $invoice): Invoice
