@@ -261,7 +261,7 @@ class InvoiceService
         if ($invoice->company->vat_id) {
             $headerHeight += 20;
         }
-        if ($invoice->customer->tax_id) {
+        if ($invoice->customer->vat_id || $invoice->customer->tax_id) {
             $headerHeight += 20;
         }
 

@@ -33,6 +33,7 @@ export interface Customer {
   base_due_amount: number | null
   prefix: string | null
   tax_id: string | null
+  vat_id: string | null
   billing?: Address
   shipping?: Address
   fields?: CustomFieldValue[]

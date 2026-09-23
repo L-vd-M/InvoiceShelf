@@ -60,6 +60,9 @@ class CustomerRequest extends FormRequest
             'tax_id' => [
                 'nullable',
             ],
+            'vat_id' => [
+                'nullable',
+            ],
             'enable_portal' => [
                 'boolean',
             ],
@@ -144,6 +147,7 @@ class CustomerRequest extends FormRequest
                 'phone',
                 'prefix',
                 'tax_id',
+                'vat_id',
                 'company_name',
                 'contact_name',
                 'website',

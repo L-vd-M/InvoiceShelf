@@ -330,6 +330,14 @@ function closeCustomerModal(): void {
                   class="mt-1 md:mt-0"
                 />
               </BaseInputGroup>
+
+              <BaseInputGroup label="VAT Number">
+                <BaseInput
+                  v-model="customerStore.currentCustomer.vat_id"
+                  type="text"
+                  class="mt-1 md:mt-0"
+                />
+              </BaseInputGroup>
             </BaseInputGrid>
           </BaseTab>
 

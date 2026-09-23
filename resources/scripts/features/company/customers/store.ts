@@ -40,6 +40,7 @@ export interface CustomerForm {
   website: string | null
   prefix?: string | null
   tax_id?: string | null
+  vat_id?: string | null
   company_name?: string | null
   customer_company_id?: number | null
   company_auto_update?: boolean

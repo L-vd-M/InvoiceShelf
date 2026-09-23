@@ -37,6 +37,7 @@ class CustomerResource extends JsonResource
             'base_due_amount' => $this->base_due_amount,
             'prefix' => $this->prefix,
             'tax_id' => $this->tax_id,
+            'vat_id' => $this->vat_id,
             'customer_company_id' => $this->customer_company_id,
             'company_auto_update' => $this->company_auto_update,
             'company_synced_at' => $this->company_synced_at,

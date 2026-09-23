@@ -92,6 +92,7 @@ class CustomerCompany extends Model
     {
         $customer->company_name = $this->name;
         $customer->tax_id = $this->tax_id;
+        $customer->vat_id = $this->vat_id;
         $customer->company_synced_at = now();
         $customer->save();
 

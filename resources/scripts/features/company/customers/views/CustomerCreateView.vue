@@ -40,6 +40,9 @@ async function onCompanySelected(companyId: number | null): Promise<void> {
   if (company.tax_id) {
     customerStore.currentCustomer.tax_id = company.tax_id
   }
+  if (company.vat_id) {
+    customerStore.currentCustomer.vat_id = company.vat_id
+  }
 
   // The billing address's own "name" heading is what the PDF actually
   // prints in bold at the top of the Bill To box -- set it from the
@@ -379,6 +382,18 @@ async function submitCustomerData(): Promise<void> {
                 :content-loading="isFetchingInitialData"
                 type="text"
                 name="tax_id"
+              />
+            </BaseInputGroup>
+
+            <BaseInputGroup
+              label="VAT Number"
+              :content-loading="isFetchingInitialData"
+            >
+              <BaseInput
+                v-model="customerStore.currentCustomer.vat_id"
+                :content-loading="isFetchingInitialData"
+                type="text"
+                name="vat_id"
               />
             </BaseInputGroup>
 
