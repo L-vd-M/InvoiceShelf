@@ -40,17 +40,26 @@ async function onCompanySelected(companyId: number | null): Promise<void> {
   if (company.tax_id) {
     customerStore.currentCustomer.tax_id = company.tax_id
   }
-  if (company.address) {
-    customerStore.currentCustomer.billing = {
-      ...customerStore.currentCustomer.billing,
-      address_street_1: company.address.address_street_1 ?? null,
-      address_street_2: company.address.address_street_2 ?? null,
-      city: company.address.city ?? null,
-      state: company.address.state ?? null,
-      country_id: company.address.country_id ?? null,
-      zip: company.address.zip ?? null,
-      phone: company.address.phone ?? null,
-    }
+
+  // The billing address's own "name" heading is what the PDF actually
+  // prints in bold at the top of the Bill To box -- set it from the
+  // company's name every time a company is picked, independent of whether
+  // an address is attached, so Bill To doesn't end up missing the heading
+  // that Ship To (filled in separately) happens to have.
+  customerStore.currentCustomer.billing = {
+    ...customerStore.currentCustomer.billing,
+    name: company.name,
+    ...(company.address
+      ? {
+          address_street_1: company.address.address_street_1 ?? null,
+          address_street_2: company.address.address_street_2 ?? null,
+          city: company.address.city ?? null,
+          state: company.address.state ?? null,
+          country_id: company.address.country_id ?? null,
+          zip: company.address.zip ?? null,
+          phone: company.address.phone ?? null,
+        }
+      : {}),
   }
 }
 

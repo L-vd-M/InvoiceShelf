@@ -105,7 +105,11 @@ class CustomerCompany extends Model
 
         $customer->addresses()->create([
             'type' => Address::BILLING_TYPE,
-            'name' => $companyAddress->name,
+            // The address record's own 'name' field is never collected
+            // anywhere (CustomerCompanyModal has no input for it) -- it's
+            // always null. The heading the PDF actually needs printed on
+            // the billing address block is the company's own name.
+            'name' => $this->name,
             'address_street_1' => $companyAddress->address_street_1,
             'address_street_2' => $companyAddress->address_street_2,
             'city' => $companyAddress->city,

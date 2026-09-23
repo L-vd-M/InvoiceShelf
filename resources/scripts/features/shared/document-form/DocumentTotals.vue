@@ -240,6 +240,7 @@ import { generateClientId } from '../../../utils'
 import { ABILITIES } from '../../../config/abilities'
 import type { Currency } from '../../../types/domain/currency'
 import type { TaxType } from '../../../types/domain/tax'
+import { calcTaxAmount } from './use-document-calculations'
 import type { DocumentFormData, DocumentTax, DocumentStore, DocumentItem } from './use-document-calculations'
 
 interface Props {
@@ -313,6 +314,11 @@ watch(
   { deep: true },
 )
 
+watch(
+  () => formData.value.tax_included,
+  () => recalculateGlobalTaxes(),
+)
+
 const totalDiscount = computed<number>({
   get: () => formData.value.discount,
   set: (newValue: number) => {
@@ -381,7 +387,13 @@ function recalculateGlobalTaxes(): void {
   const subtotalWithDiscount = props.store.getSubtotalWithDiscount
   formData.value.taxes.forEach((tax: DocumentTax) => {
     if (tax.calculation_type === 'percentage' && tax.percent) {
-      tax.amount = Math.round((subtotalWithDiscount * tax.percent) / 100)
+      tax.amount = calcTaxAmount(
+        subtotalWithDiscount,
+        tax.percent,
+        tax.fixed_amount,
+        tax.calculation_type,
+        formData.value.tax_included,
+      )
     }
     // Fixed taxes keep their amount as-is
   })
@@ -401,18 +413,13 @@ function selectPercentage(): void {
 }
 
 function onSelectTax(selectedTax: TaxType): void {
-  let amount = 0
-  if (
-    selectedTax.calculation_type === 'percentage' &&
-    props.store.getSubtotalWithDiscount &&
-    selectedTax.percent
-  ) {
-    amount = Math.round(
-      (props.store.getSubtotalWithDiscount * selectedTax.percent) / 100,
-    )
-  } else if (selectedTax.calculation_type === 'fixed') {
-    amount = selectedTax.fixed_amount
-  }
+  const amount = calcTaxAmount(
+    props.store.getSubtotalWithDiscount,
+    selectedTax.percent,
+    selectedTax.fixed_amount,
+    selectedTax.calculation_type,
+    formData.value.tax_included,
+  )
 
   const data: DocumentTax = {
     id: generateClientId(),
