@@ -8,6 +8,7 @@ import { useGlobalStore } from '@/scripts/stores/global.store'
 import { useNotificationStore } from '@/scripts/stores/notification.store'
 import { customerCompanyService } from '@/scripts/api/services/customer-company.service'
 import type { CustomerCompanyPayload } from '@/scripts/api/services/customer-company.service'
+import type { AddressSuggestion } from '@/scripts/api/services/address.service'
 
 interface CustomerCompanyForm {
   id: number | null
@@ -62,6 +63,21 @@ const rules = computed(() => ({
 }))
 
 const v$ = useVuelidate(rules, currentCompany)
+
+const countryCode = computed<string | null>(
+  () =>
+    globalStore.countries.find((c) => c.id === currentCompany.value.country_id)
+      ?.code ?? null
+)
+
+function applyAddressSuggestion(s: AddressSuggestion): void {
+  currentCompany.value.address_street_1 = s.address_street_1
+  currentCompany.value.city = s.city
+  currentCompany.value.state = s.state
+  currentCompany.value.zip = s.zip
+  const country = globalStore.countries.find((c) => c.code === s.country_code)
+  if (country) currentCompany.value.country_id = country.id
+}
 
 async function setInitialData(): Promise<void> {
   globalStore.fetchCountries()
@@ -198,6 +214,12 @@ function closeModal(): void {
           <BaseInputGroup label="Website" variant="horizontal">
             <BaseInput v-model="currentCompany.website" type="text" />
           </BaseInputGroup>
+
+          <BaseAddressSearch
+            uid="company-modal"
+            :country-code="countryCode"
+            @select="applyAddressSuggestion"
+          />
 
           <BaseInputGroup label="Address" variant="horizontal">
             <BaseInput

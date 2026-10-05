@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useModalStore } from '../../../../stores/modal.store'
+import { useRouter } from 'vue-router'
 import { useDialogStore } from '../../../../stores/dialog.store'
 import { useUserStore } from '../../../../stores/user.store'
 import { useNotificationStore } from '../../../../stores/notification.store'
 import { customerCompanyService } from '@/scripts/api/services/customer-company.service'
-import CustomerCompanyModal from '../components/CustomerCompanyModal.vue'
 
 interface TableColumn {
   key: string
@@ -39,7 +38,7 @@ const ABILITIES = {
 } as const
 
 const { t } = useI18n()
-const modalStore = useModalStore()
+const router = useRouter()
 const dialogStore = useDialogStore()
 const userStore = useUserStore()
 const notificationStore = useNotificationStore()
@@ -98,21 +97,12 @@ function refreshTable(): void {
   table.value?.refresh()
 }
 
-function openAddModal(): void {
-  modalStore.openModal({
-    title: 'Add New Company',
-    componentName: 'CustomerCompanyModal',
-    refreshData: refreshTable,
-  })
+function openAddPage(): void {
+  router.push({ name: 'customer-companies.create' })
 }
 
-function openEditModal(id: number): void {
-  modalStore.openModal({
-    title: 'Edit Company',
-    componentName: 'CustomerCompanyModal',
-    data: id,
-    refreshData: refreshTable,
-  })
+function openEditPage(id: number): void {
+  router.push({ name: 'customer-companies.edit', params: { id } })
 }
 
 function removeCompany(id: number): void {
@@ -150,7 +140,7 @@ function removeCompany(id: number): void {
       <template #actions>
         <BaseButton
           v-if="userStore.hasAbilities(ABILITIES.CREATE_CUSTOMER_COMPANY)"
-          @click="openAddModal"
+          @click="openAddPage"
         >
           <template #left="slotProps">
             <BaseIcon name="PlusIcon" :class="slotProps.class" />
@@ -159,8 +149,6 @@ function removeCompany(id: number): void {
         </BaseButton>
       </template>
     </BasePageHeader>
-
-    <CustomerCompanyModal />
 
     <BaseTable ref="table" class="mt-5" :data="fetchData" :columns="columns">
       <template #cell-tax_id="{ row }">
@@ -183,7 +171,7 @@ function removeCompany(id: number): void {
 
           <BaseDropdownItem
             v-if="userStore.hasAbilities(ABILITIES.EDIT_CUSTOMER_COMPANY)"
-            @click="openEditModal(row.data.id)"
+            @click="openEditPage(row.data.id)"
           >
             <BaseIcon
               name="PencilIcon"

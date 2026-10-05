@@ -38,6 +38,24 @@ const customerRoutes: RouteRecordRaw[] = [
     },
   },
   {
+    path: 'customer-companies/create',
+    name: 'customer-companies.create',
+    component: () => import('./views/CustomerCompanyCreateView.vue'),
+    meta: {
+      requiresAuth: true,
+      ability: 'create-customer-company',
+    },
+  },
+  {
+    path: 'customer-companies/:id/edit',
+    name: 'customer-companies.edit',
+    component: () => import('./views/CustomerCompanyCreateView.vue'),
+    meta: {
+      requiresAuth: true,
+      ability: 'edit-customer-company',
+    },
+  },
+  {
     path: 'customer-companies',
     name: 'customer-companies.index',
     component: () => import('./views/CustomerCompanyIndexView.vue'),
