@@ -63,5 +63,10 @@ class RouteServiceProvider extends ServiceProvider
 
             return Limit::perMinute(30)->by($key);
         });
+
+        // Address suggestions — per user, keeps typing-driven lookups polite to the public Photon instance.
+        RateLimiter::for('address-suggest', function (Request $request) {
+            return Limit::perMinute(40)->by($request->user()?->id ?? $request->ip());
+        });
     }
 }

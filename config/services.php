@@ -51,4 +51,9 @@ return [
         'region' => env('SES_REGION', 'us-east-1'),
     ],
 
+    'photon' => [
+        'url' => env('PHOTON_URL', 'https://photon.komoot.io/api/'),
+        'user_agent' => env('PHOTON_USER_AGENT', 'InvoiceShelf-TARCZA/1.0 (+https://tarcza-electronics.com)'),
+    ],
+
 ];

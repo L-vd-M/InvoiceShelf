@@ -20,6 +20,7 @@ import { useNotificationStore } from '../../../../stores/notification.store'
 import { customerCompanyService } from '@/scripts/api/services/customer-company.service'
 import CustomerCustomFields from '@/scripts/features/company/customers/components/CreateCustomFields.vue'
 import CopyInputField from '@/scripts/features/company/customers/components/CopyInputField.vue'
+import type { AddressSuggestion } from '@/scripts/api/services/address.service'
 
 const customerStore = useCustomerStore()
 const globalStore = useGlobalStore()
@@ -215,6 +216,26 @@ async function submitCustomerData(): Promise<void> {
   } catch {
     isSaving.value = false
   }
+}
+
+type AddressKind = 'billing' | 'shipping'
+
+function countryCodeFor(kind: AddressKind): string | null {
+  const id = customerStore.currentCustomer[kind].country_id
+  return globalStore.countries.find((c) => c.id === id)?.code ?? null
+}
+
+function applyAddressSuggestion(
+  kind: AddressKind,
+  s: AddressSuggestion
+): void {
+  const address = customerStore.currentCustomer[kind]
+  address.address_street_1 = s.address_street_1 || null
+  address.city = s.city || null
+  address.state = s.state || null
+  address.zip = s.zip || null
+  const country = globalStore.countries.find((c) => c.code === s.country_code)
+  if (country) address.country_id = country.id
 }
 </script>
 
@@ -535,6 +556,12 @@ async function submitCustomerData(): Promise<void> {
               />
             </BaseInputGroup>
 
+            <BaseAddressSearch
+              uid="billing"
+              :country-code="countryCodeFor('billing')"
+              @select="applyAddressSuggestion('billing', $event)"
+            />
+
             <BaseInputGroup
               :label="$t('customers.country')"
               :content-loading="isFetchingInitialData"
@@ -691,6 +718,12 @@ async function submitCustomerData(): Promise<void> {
                 name="address_name"
               />
             </BaseInputGroup>
+
+            <BaseAddressSearch
+              uid="shipping"
+              :country-code="countryCodeFor('shipping')"
+              @select="applyAddressSuggestion('shipping', $event)"
+            />
 
             <BaseInputGroup
               :label="$t('customers.country')"

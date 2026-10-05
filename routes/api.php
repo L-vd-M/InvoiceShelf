@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\Settings\SettingsController;
 use App\Http\Controllers\Admin\UpdateController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\AppVersionController;
+use App\Http\Controllers\Company\Address\AddressSuggestController;
 use App\Http\Controllers\Company\Ai\ChatController as AiChatController;
 use App\Http\Controllers\Company\Ai\ConversationController as AiConversationController;
 use App\Http\Controllers\Company\Ai\GenerationController as AiGenerationController;
@@ -252,6 +253,11 @@ Route::prefix('/v1')->group(function () {
             // ----------------------------------
 
             Route::apiResource('company-invitations', InvitationController::class)->only(['index', 'store', 'destroy']);
+
+            // Address suggestions (Photon / OpenStreetMap)
+            // ----------------------------------
+
+            Route::get('/address/suggest', AddressSuggestController::class)->middleware('throttle:address-suggest');
 
             // Customers
             // ----------------------------------

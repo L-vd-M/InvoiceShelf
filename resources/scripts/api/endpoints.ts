@@ -117,6 +117,9 @@ export const API = {
   COMPANY_MAIL_CONFIG: '/api/v1/company/mail/company-config',
   COMPANY_MAIL_TEST: '/api/v1/company/mail/company-test',
 
+  // Address suggestions
+  ADDRESS_SUGGEST: '/api/v1/address/suggest',
+
   // AI Configuration (global)
   AI_DRIVERS: '/api/v1/ai/drivers',
   AI_CONFIG: '/api/v1/ai/config',

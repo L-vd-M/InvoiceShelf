@@ -1,5 +1,7 @@
 export { authService } from './auth.service'
 export { bootstrapService } from './bootstrap.service'
+export { addressService } from './address.service'
+export type { AddressSuggestion } from './address.service'
 export { invoiceService } from './invoice.service'
 export { estimateService } from './estimate.service'
 export { recurringInvoiceService } from './recurring-invoice.service'

@@ -212,6 +212,14 @@
     "custom": "Custom"
   },
   "customers": {
+    "address_search": "Find the address",
+    "address_search_hint": "optional, start typing and pick a suggestion",
+    "address_search_placeholder": "e.g. 12 Long Street, Cape Town",
+    "address_search_filled": "Address filled in below. Check it and correct anything that is wrong.",
+    "address_search_none": "No suggestions. Type the address in the fields below.",
+    "address_search_unavailable": "Suggestions are not available right now. Type the address in the fields below.",
+    "address_search_slow_down": "Too many searches: wait a moment, or type the address in the fields below.",
+    "address_search_credit": "Suggestions come from OpenStreetMap's Photon service. What you type in the search box is sent there through our server.",
     "title": "Customers",
     "prefix": "Prefix",
     "tax_id": "Tax ID",

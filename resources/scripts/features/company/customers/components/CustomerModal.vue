@@ -24,6 +24,7 @@ import CopyInputField from '@/scripts/features/company/customers/components/Copy
 import { useEstimateStore } from '@/scripts/features/company/estimates/store'
 import { useInvoiceStore } from '@/scripts/features/company/invoices/store'
 import { useRecurringInvoiceStore } from '@/scripts/features/company/recurring-invoices/store'
+import type { AddressSuggestion } from '@/scripts/api/services/address.service'
 
 const recurringInvoiceStore = useRecurringInvoiceStore()
 const modalStore = useModalStore()
@@ -131,6 +132,26 @@ const v$ = useVuelidate(
 const getCustomerPortalUrl = computed<string>(() => {
   return `${window.location.origin}/${companyStore.selectedCompany?.slug}/customer/login`
 })
+
+type AddressKind = 'billing' | 'shipping'
+
+function countryCodeFor(kind: AddressKind): string | null {
+  const id = customerStore.currentCustomer[kind].country_id
+  return globalStore.countries.find((c) => c.id === id)?.code ?? null
+}
+
+function applyAddressSuggestion(
+  kind: AddressKind,
+  s: AddressSuggestion
+): void {
+  const address = customerStore.currentCustomer[kind]
+  address.address_street_1 = s.address_street_1 || null
+  address.city = s.city || null
+  address.state = s.state || null
+  address.zip = s.zip || null
+  const country = globalStore.countries.find((c) => c.code === s.country_code)
+  if (country) address.country_id = country.id
+}
 
 function copyAddress(): void {
   customerStore.copyAddress()
@@ -426,6 +447,12 @@ function closeCustomerModal(): void {
                 />
               </BaseInputGroup>
 
+              <BaseAddressSearch
+                uid="billing"
+                :country-code="countryCodeFor('billing')"
+                @select="applyAddressSuggestion('billing', $event)"
+              />
+
               <BaseInputGroup :label="$t('customers.country')">
                 <BaseMultiselect
                   v-model="customerStore.currentCustomer.billing.country_id"
@@ -540,6 +567,12 @@ function closeCustomerModal(): void {
                   class="mt-1 md:mt-0"
                 />
               </BaseInputGroup>
+
+              <BaseAddressSearch
+                uid="shipping"
+                :country-code="countryCodeFor('shipping')"
+                @select="applyAddressSuggestion('shipping', $event)"
+              />
 
               <BaseInputGroup :label="$t('customers.country')">
                 <BaseMultiselect
