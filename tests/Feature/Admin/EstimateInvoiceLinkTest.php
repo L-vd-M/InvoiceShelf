@@ -4,6 +4,7 @@ use App\Models\CompanySetting;
 use App\Models\Estimate;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Models\UserSetting;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;
 use Laravel\Sanctum\Sanctum;
@@ -16,6 +17,7 @@ beforeEach(function () {
     Artisan::call('db:seed', ['--class' => 'DemoSeeder', '--force' => true]);
 
     $user = User::find(1);
+    $this->user = $user;
     $this->company = $user->companies()->first();
     $this->withHeaders(['company' => $this->company->id]);
     Sanctum::actingAs($user, ['*']);
@@ -108,4 +110,13 @@ test('deleting a linked estimate at database level keeps the invoice and its sna
     $invoice = Invoice::find($invoiceId);
     expect($invoice->estimate_id)->toBeNull()
         ->and($invoice->source_estimate_number)->toBe($this->estimate->estimate_number);
+});
+
+test('conversion falls back to the creators default invoice template when the quote template has no invoice twin', function () {
+    UserSetting::create(['user_id' => $this->user->id, 'key' => 'default_invoice_template', 'value' => 'invoice3']);
+    $this->estimate->update(['template_name' => 'no-such-estimate-template', 'creator_id' => $this->user->id]);
+
+    $invoiceId = postJson("api/v1/estimates/{$this->estimate->id}/convert-to-invoice")->json('data.id');
+
+    expect(Invoice::find($invoiceId)->template_name)->toBe('invoice3');
 });

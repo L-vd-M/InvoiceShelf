@@ -296,7 +296,7 @@ class Estimate extends Model implements HasMedia
     /**
      * Map the estimate's template name to the corresponding invoice template name.
      *
-     * Falls back to 'invoice1' if the mapped name does not exist in available templates.
+     * Falls back to the creator's default invoice template, then 'invoice1', if the mapped name does not exist.
      */
     public function getInvoiceTemplateName(): string
     {
@@ -308,8 +308,12 @@ class Estimate extends Model implements HasMedia
             $name[] = $template['name'];
         }
 
-        if (in_array($templateName, $name) == false) {
-            $templateName = 'invoice1';
+        if (! in_array($templateName, $name)) {
+            $userDefault = UserSetting::where('user_id', $this->creator_id)
+                ->where('key', 'default_invoice_template')
+                ->value('value');
+
+            $templateName = in_array($userDefault, $name) ? $userDefault : 'invoice1';
         }
 
         return $templateName;
