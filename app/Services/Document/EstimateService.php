@@ -17,6 +17,7 @@ use App\Support\Pdf\PdfTemplateUtils;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EstimateService
 {
@@ -296,6 +297,15 @@ class EstimateService
 
     public function convertToInvoice(Estimate $estimate): Invoice
     {
+        return DB::transaction(function () use ($estimate) {
+            $existing = Invoice::where('estimate_id', $estimate->id)->lockForUpdate()->first();
+
+            return $existing ?? $this->createInvoiceFromEstimate($estimate);
+        });
+    }
+
+    private function createInvoiceFromEstimate(Estimate $estimate): Invoice
+    {
         $estimate->load(['items', 'items.taxes', 'customer', 'taxes']);
 
         $invoiceDate = Carbon::now();
@@ -330,7 +340,9 @@ class EstimateService
             'invoice_number' => $serial->getNextNumber(),
             'sequence_number' => $serial->nextSequenceNumber,
             'customer_sequence_number' => $serial->nextCustomerSequenceNumber,
-            'reference_number' => $serial->getNextNumber(),
+            'reference_number' => $estimate->estimate_number,
+            'estimate_id' => $estimate->id,
+            'source_estimate_number' => $estimate->estimate_number,
             'customer_id' => $estimate->customer_id,
             'company_id' => $estimate->company_id,
             'template_name' => $templateName,

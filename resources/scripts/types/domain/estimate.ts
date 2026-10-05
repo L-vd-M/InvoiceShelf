@@ -57,6 +57,7 @@ export interface Estimate {
   total: number
   tax: number
   unique_hash: string
+  invoice?: { id: number; invoice_number: string } | null
   creator_id: number
   template_name: string | null
   customer_id: number

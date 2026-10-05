@@ -22,7 +22,6 @@ utils.mergeSettings(
 
 const convertEstimateOptions = [
   { key: 'settings.customization.estimates.no_action', value: 'no_action' },
-  { key: 'settings.customization.estimates.delete_estimate', value: 'delete_estimate' },
   { key: 'settings.customization.estimates.mark_estimate_as_accepted', value: 'mark_estimate_as_accepted' },
 ]
 

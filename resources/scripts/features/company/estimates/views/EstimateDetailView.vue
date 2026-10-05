@@ -2,6 +2,13 @@
   <BasePage v-if="estimateData" class="xl:pl-96 xl:ml-8">
     <BasePageHeader :title="pageTitle">
       <template #actions>
+        <router-link
+          v-if="estimateData.invoice"
+          :to="`/admin/invoices/${estimateData.invoice.id}/view`"
+          class="mr-3 text-sm font-medium text-primary-500 hover:underline"
+        >
+          {{ $t('estimates.related_invoice') }}: {{ estimateData.invoice.invoice_number }}
+        </router-link>
         <div class="mr-3 text-sm">
           <BaseButton
             v-if="estimateData.status === 'DRAFT' && canEdit"

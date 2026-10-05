@@ -39,6 +39,8 @@ class InvoiceResource extends JsonResource
             'template_name' => $this->template_name,
             'customer_id' => $this->customer_id,
             'recurring_invoice_id' => $this->recurring_invoice_id,
+            'estimate_id' => $this->estimate_id,
+            'source_estimate_number' => $this->source_estimate_number,
             'sequence_number' => $this->sequence_number,
             'exchange_rate' => $this->exchange_rate,
             'base_discount_val' => $this->base_discount_val,
@@ -57,6 +59,7 @@ class InvoiceResource extends JsonResource
             'sales_tax_type' => $this->sales_tax_type,
             'sales_tax_address_type' => $this->sales_tax_address_type,
             'overdue' => $this->overdue,
+            'estimate' => $this->whenLoaded('estimate', fn () => $this->estimate ? ['id' => $this->estimate->id, 'estimate_number' => $this->estimate->estimate_number] : null),
             'items' => $this->when($this->items()->exists(), function () {
                 return InvoiceItemResource::collection($this->items);
             }),

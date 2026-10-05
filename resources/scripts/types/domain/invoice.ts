@@ -70,6 +70,9 @@ export interface Invoice {
   template_name: string | null
   customer_id: number
   recurring_invoice_id: number | null
+  estimate_id?: number | null
+  source_estimate_number?: string | null
+  estimate?: { id: number; estimate_number: string } | null
   sequence_number: number
   exchange_rate: number
   base_discount_val: number

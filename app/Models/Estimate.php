@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
@@ -78,6 +79,11 @@ class Estimate extends Model implements HasMedia
     public function items(): HasMany
     {
         return $this->hasMany(EstimateItem::class);
+    }
+
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class);
     }
 
     public function customer(): BelongsTo
@@ -312,8 +318,9 @@ class Estimate extends Model implements HasMedia
     /**
      * Handle the post-conversion action for this estimate based on company settings.
      *
-     * Either deletes the estimate or marks it as accepted, depending on the
-     * 'estimate_convert_action' company setting.
+     * Optionally marks the estimate as accepted, depending on the
+     * 'estimate_convert_action' company setting. The estimate is never deleted:
+     * it is the permanent source document of the linked invoice.
      */
     public function checkForEstimateConvertAction(): bool
     {
@@ -321,10 +328,6 @@ class Estimate extends Model implements HasMedia
             'estimate_convert_action',
             $this->company_id
         );
-
-        if ($convertEstimateAction === 'delete_estimate') {
-            $this->delete();
-        }
 
         if ($convertEstimateAction === 'mark_estimate_as_accepted') {
             $this->status = self::STATUS_ACCEPTED;

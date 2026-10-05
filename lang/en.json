@@ -316,6 +316,7 @@
   },
   "estimates": {
     "title": "Estimates",
+    "related_invoice": "Invoice",
     "accept_estimate": "Accept Estimate",
     "reject_estimate": "Reject Estimate",
     "estimate": "Estimate | Estimates",
@@ -414,6 +415,7 @@
   },
   "invoices": {
     "title": "Invoices",
+    "related_estimate": "Estimate",
     "download": "Download",
     "pay_invoice": "Pay Invoice",
     "invoices_list": "Invoices List",

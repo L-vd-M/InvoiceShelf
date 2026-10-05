@@ -75,7 +75,7 @@ class InvoicesController extends Controller
     {
         $this->authorize('view', $invoice);
 
-        return new InvoiceResource($invoice);
+        return new InvoiceResource($invoice->load('estimate'));
     }
 
     /**

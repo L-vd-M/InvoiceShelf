@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Invoice;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,6 +28,11 @@ class DeleteEstimatesRequest extends FormRequest
             'ids.*' => [
                 'required',
                 Rule::exists('estimates', 'id'),
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if (Invoice::where('estimate_id', $value)->exists()) {
+                        $fail('This estimate has a linked invoice and cannot be deleted.');
+                    }
+                },
             ],
         ];
     }

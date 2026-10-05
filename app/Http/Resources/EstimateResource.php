@@ -47,6 +47,7 @@ class EstimateResource extends JsonResource
             'estimate_pdf_url' => $this->estimatePdfUrl,
             'sales_tax_type' => $this->sales_tax_type,
             'sales_tax_address_type' => $this->sales_tax_address_type,
+            'invoice' => $this->whenLoaded('invoice', fn () => $this->invoice ? ['id' => $this->invoice->id, 'invoice_number' => $this->invoice->invoice_number] : null),
             'items' => $this->when($this->items()->exists(), function () {
                 return EstimateItemResource::collection($this->items);
             }),

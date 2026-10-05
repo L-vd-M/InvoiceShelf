@@ -112,6 +112,11 @@ class Invoice extends Model implements HasMedia
         return $this->belongsTo(Customer::class, 'customer_id');
     }
 
+    public function estimate(): BelongsTo
+    {
+        return $this->belongsTo(Estimate::class);
+    }
+
     public function recurringInvoice(): BelongsTo
     {
         return $this->belongsTo(RecurringInvoice::class);
