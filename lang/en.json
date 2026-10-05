@@ -1076,6 +1076,8 @@
       "company_name": "Company Name",
       "tax_id": "Tax Identification Number",
       "vat_id": "VAT Identification Number",
+      "registration_number": "Company Registration Number",
+      "email": "Company Email",
       "company_logo": "Company Logo",
       "logo_height": "Logo Height (px)",
       "bank_details": "Banking Details",

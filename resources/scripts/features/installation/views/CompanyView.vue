@@ -105,6 +105,14 @@
         <BaseInputGroup :label="$t('settings.company_info.vat_id')">
           <BaseInput v-model.trim="companyForm.vat_id" type="text" name="vat_id" />
         </BaseInputGroup>
+
+        <BaseInputGroup :label="$t('settings.company_info.registration_number')">
+          <BaseInput v-model.trim="companyForm.registration_number" type="text" name="registration_number" />
+        </BaseInputGroup>
+
+        <BaseInputGroup :label="$t('settings.company_info.email')">
+          <BaseInput v-model.trim="companyForm.email" type="email" name="email" />
+        </BaseInputGroup>
       </div>
 
       <BaseButton :loading="isSaving" :disabled="isSaving" class="mt-4">
@@ -143,6 +151,8 @@ interface CompanyFormData {
   name: string | null
   tax_id: string | null
   vat_id: string | null
+  registration_number: string | null
+  email: string | null
   address: CompanyAddress
 }
 
@@ -161,6 +171,8 @@ const companyForm = reactive<CompanyFormData>({
   name: null,
   tax_id: null,
   vat_id: null,
+  registration_number: null,
+  email: null,
   address: {
     address_street_1: '',
     address_street_2: '',

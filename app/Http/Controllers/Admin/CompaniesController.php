@@ -48,6 +48,8 @@ class CompaniesController extends Controller
             'name' => $request->name,
             'vat_id' => $request->vat_id,
             'tax_id' => $request->tax_id,
+            'registration_number' => $request->registration_number,
+            'email' => $request->email,
             'owner_id' => $request->owner_id,
         ]);
 

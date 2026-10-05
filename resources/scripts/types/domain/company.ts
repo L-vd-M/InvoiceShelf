@@ -7,6 +7,8 @@ export interface Company {
   name: string
   vat_id: string | null
   tax_id: string | null
+  registration_number: string | null
+  email: string | null
   logo: string | null
   logo_path: string | null
   unique_hash: string

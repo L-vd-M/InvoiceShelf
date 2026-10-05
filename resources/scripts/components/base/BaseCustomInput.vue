@@ -204,6 +204,8 @@ function getFields(): void {
         { label: 'Zip Code', value: 'COMPANY_ZIP_CODE' },
         { label: 'Vat Id', value: 'COMPANY_VAT' },
         { label: 'Tax Id', value: 'COMPANY_TAX' },
+        { label: 'Registration Number', value: 'COMPANY_REGISTRATION_NUMBER' },
+        { label: 'Company Email', value: 'COMPANY_EMAIL' },
       ],
     })
   }

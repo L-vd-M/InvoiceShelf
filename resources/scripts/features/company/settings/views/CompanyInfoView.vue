@@ -12,6 +12,8 @@ interface CompanyFormData {
   logo: string | null
   tax_id: string | null
   vat_id: string | null
+  registration_number: string | null
+  email: string | null
   address: {
     address_street_1: string
     address_street_2: string
@@ -40,6 +42,8 @@ const companyForm = reactive<CompanyFormData>({
   logo: companyStore.selectedCompany?.logo ?? null,
   tax_id: companyStore.selectedCompany?.tax_id ?? null,
   vat_id: companyStore.selectedCompany?.vat_id ?? null,
+  registration_number: companyStore.selectedCompany?.registration_number ?? null,
+  email: companyStore.selectedCompany?.email ?? null,
   address: {
     address_street_1: (companyStore.selectedCompany?.address as Record<string, string>)?.address_street_1 ?? '',
     address_street_2: (companyStore.selectedCompany?.address as Record<string, string>)?.address_street_2 ?? '',
@@ -121,6 +125,8 @@ async function updateCompanyData(): Promise<void> {
     name: companyForm.name ?? '',
     tax_id: companyForm.tax_id,
     vat_id: companyForm.vat_id,
+    registration_number: companyForm.registration_number,
+    email: companyForm.email,
     address: companyForm.address,
   })
 
@@ -272,6 +278,12 @@ async function updateCompanyData(): Promise<void> {
           </BaseInputGroup>
           <BaseInputGroup :label="$t('settings.company_info.vat_id')">
             <BaseInput v-model="companyForm.vat_id" type="text" />
+          </BaseInputGroup>
+          <BaseInputGroup :label="$t('settings.company_info.registration_number')">
+            <BaseInput v-model="companyForm.registration_number" type="text" />
+          </BaseInputGroup>
+          <BaseInputGroup :label="$t('settings.company_info.email')">
+            <BaseInput v-model="companyForm.email" type="email" />
           </BaseInputGroup>
         </div>
       </BaseInputGrid>

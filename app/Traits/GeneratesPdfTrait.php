@@ -147,6 +147,8 @@ trait GeneratesPdfTrait
             '{COMPANY_ZIP_CODE}' => $companyAddress->zip,
             '{COMPANY_VAT}' => $this->company->vat_id,
             '{COMPANY_TAX}' => $this->company->tax_id,
+            '{COMPANY_REGISTRATION_NUMBER}' => $this->company->registration_number,
+            '{COMPANY_EMAIL}' => $this->company->email,
             '{CONTACT_DISPLAY_NAME}' => $customer->name,
             '{PRIMARY_CONTACT_NAME}' => $customer->contact_name,
             '{CONTACT_EMAIL}' => $customer->email,

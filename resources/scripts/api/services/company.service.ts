@@ -8,6 +8,8 @@ export interface UpdateCompanyPayload {
   name: string
   vat_id?: string | null
   tax_id?: string | null
+  registration_number?: string | null
+  email?: string | null
   phone?: string | null
   address?: {
     address_street_1?: string | null

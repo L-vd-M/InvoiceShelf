@@ -61,6 +61,14 @@
           <BaseInputGroup :label="$t('settings.company_info.vat_id')">
             <BaseInput v-model="formData.vat_id" type="text" />
           </BaseInputGroup>
+
+          <BaseInputGroup :label="$t('settings.company_info.registration_number')">
+            <BaseInput v-model="formData.registration_number" type="text" />
+          </BaseInputGroup>
+
+          <BaseInputGroup :label="$t('settings.company_info.email')">
+            <BaseInput v-model="formData.email" type="email" />
+          </BaseInputGroup>
         </BaseInputGrid>
 
         <BaseDivider class="my-6" />
@@ -151,6 +159,8 @@ interface CompanyFormData {
   owner_id: OwnerOption | null
   vat_id: string
   tax_id: string
+  registration_number: string
+  email: string
   address: {
     address_street_1: string
     address_street_2: string
@@ -176,6 +186,8 @@ const formData = reactive<CompanyFormData>({
   owner_id: null,
   vat_id: '',
   tax_id: '',
+  registration_number: '',
+  email: '',
   address: {
     address_street_1: '',
     address_street_2: '',
@@ -209,6 +221,8 @@ onMounted(async () => {
   formData.name = company.name
   formData.vat_id = company.vat_id ?? ''
   formData.tax_id = company.tax_id ?? ''
+  formData.registration_number = company.registration_number ?? ''
+  formData.email = company.email ?? ''
 
   if (company.owner) {
     formData.owner_id = {
@@ -264,6 +278,8 @@ async function submitForm(): Promise<void> {
     owner_id: formData.owner_id?.id ?? 0,
     vat_id: formData.vat_id,
     tax_id: formData.tax_id,
+    registration_number: formData.registration_number,
+    email: formData.email,
     address: formData.address,
   })
 

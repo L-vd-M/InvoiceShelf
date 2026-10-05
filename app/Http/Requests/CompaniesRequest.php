@@ -30,6 +30,8 @@ class CompaniesRequest extends FormRequest
             'currency' => [
                 'required',
             ],
+            'registration_number' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'email', 'max:255'],
             'address.name' => [
                 'nullable',
             ],
@@ -67,6 +69,8 @@ class CompaniesRequest extends FormRequest
                 'name',
                 'vat_id',
                 'tax_id',
+                'registration_number',
+                'email',
             ])
             ->merge([
                 'owner_id' => $this->user()->id,

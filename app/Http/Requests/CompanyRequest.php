@@ -32,6 +32,16 @@ class CompanyRequest extends FormRequest
             'tax_id' => [
                 'nullable',
             ],
+            'registration_number' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+            ],
             'address.country_id' => [
                 'required',
             ],
@@ -45,6 +55,8 @@ class CompanyRequest extends FormRequest
                 'name',
                 'vat_id',
                 'tax_id',
+                'registration_number',
+                'email',
             ])
             ->merge([
                 'slug' => Str::slug($this->name),
