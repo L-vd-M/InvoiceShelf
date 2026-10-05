@@ -402,6 +402,14 @@ export const useEstimateStore = defineStore('estimate', {
       return { data: response }
     },
 
+    async issueInvoice(
+      id: number,
+      payload: { payment_date: string; amount: number; notes?: string | null; send_email: boolean },
+    ): Promise<{ data: { data: Invoice; created: boolean } }> {
+      const response = await estimateService.issueInvoice(id, payload)
+      return { data: response }
+    },
+
     async searchEstimate(queryString: string): Promise<unknown> {
       return estimateService.list(
         Object.fromEntries(new URLSearchParams(queryString)) as never,

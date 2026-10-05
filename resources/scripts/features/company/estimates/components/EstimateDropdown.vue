@@ -18,7 +18,7 @@
 
     <!-- Edit Estimate -->
     <router-link
-      v-if="canEdit"
+      v-if="canEdit && row.status !== 'ACCEPTED'"
       :to="`/admin/estimates/${row.id}/edit`"
     >
       <BaseDropdownItem>
@@ -69,6 +69,18 @@
         class="w-5 h-5 mr-3 text-subtle group-hover:text-muted"
       />
       {{ $t('estimates.convert_to_invoice') }}
+    </BaseDropdownItem>
+
+    <!-- Confirm payment & issue invoice -->
+    <BaseDropdownItem
+      v-if="canCreateInvoice && row.status === 'ACCEPTED'"
+      @click="showIssueModal = true"
+    >
+      <BaseIcon
+        name="BanknotesIcon"
+        class="w-5 h-5 mr-3 text-subtle group-hover:text-muted"
+      />
+      {{ $t('estimates.confirm_payment_issue_invoice') }}
     </BaseDropdownItem>
 
     <!-- Mark as Sent -->
@@ -128,10 +140,16 @@
       {{ $t('estimates.mark_as_rejected') }}
     </BaseDropdownItem>
   </BaseDropdown>
+
+  <EstimateIssueInvoiceModal
+    :show="showIssueModal"
+    :estimate="row"
+    @close="showIssueModal = false"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useEstimateStore } from '../store'
@@ -139,6 +157,7 @@ import { useDialogStore } from '../../../../stores/dialog.store'
 import { useModalStore } from '../../../../stores/modal.store'
 import { useNotificationStore } from '../../../../stores/notification.store'
 import type { Estimate } from '../../../../types/domain/estimate'
+import EstimateIssueInvoiceModal from './EstimateIssueInvoiceModal.vue'
 
 interface TableRef {
   refresh: () => void
@@ -172,6 +191,8 @@ const notificationStore = useNotificationStore()
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
+
+const showIssueModal = ref(false)
 
 const isDetailView = computed<boolean>(() => route.name === 'estimates.view')
 

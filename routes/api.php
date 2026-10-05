@@ -325,6 +325,8 @@ Route::prefix('/v1')->group(function () {
 
             Route::post('/estimates/{estimate}/convert-to-invoice', [EstimatesController::class, 'convertToInvoice']);
 
+            Route::post('/estimates/{estimate}/issue-invoice', [EstimatesController::class, 'issueInvoice']);
+
             Route::get('/estimates/templates', EstimateTemplatesController::class);
 
             Route::post('/estimates/delete', [EstimatesController::class, 'delete']);

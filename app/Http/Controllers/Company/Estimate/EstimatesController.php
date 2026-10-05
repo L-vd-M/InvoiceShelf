@@ -5,15 +5,19 @@ namespace App\Http\Controllers\Company\Estimate;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DeleteEstimatesRequest;
 use App\Http\Requests\EstimatesRequest;
+use App\Http\Requests\IssueInvoiceForQuoteRequest;
 use App\Http\Requests\SendEstimatesRequest;
 use App\Http\Resources\EstimateResource;
 use App\Http\Resources\InvoiceResource;
 use App\Jobs\GenerateEstimatePdfJob;
 use App\Models\Estimate;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Services\Document\EstimateService;
+use App\Services\Document\QuoteToInvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown;
+use Illuminate\Validation\ValidationException;
 
 class EstimatesController extends Controller
 {
@@ -65,6 +69,12 @@ class EstimatesController extends Controller
     public function update(EstimatesRequest $request, Estimate $estimate)
     {
         $this->authorize('update', $estimate);
+
+        if ($estimate->status === Estimate::STATUS_ACCEPTED) {
+            throw ValidationException::withMessages([
+                'status' => ['An accepted quote can no longer be edited.'],
+            ]);
+        }
 
         $estimate = $this->estimateService->update($estimate, $request);
 
@@ -129,6 +139,25 @@ class EstimatesController extends Controller
         $invoice = $this->estimateService->convertToInvoice($estimate);
 
         return new InvoiceResource($invoice);
+    }
+
+    public function issueInvoice(IssueInvoiceForQuoteRequest $request, Estimate $estimate, QuoteToInvoiceService $service)
+    {
+        $this->authorize('view', $estimate);
+        $this->authorize('create', Invoice::class);
+        $this->authorize('create', Payment::class);
+
+        $result = $service->issueInvoiceForPaidQuote(
+            $estimate,
+            $request->only(['payment_date', 'amount', 'payment_method_id', 'notes']),
+            $request->user()->id,
+            $request->boolean('send_email', true),
+        );
+
+        return (new InvoiceResource($result['invoice']->load('estimate')))
+            ->additional(['created' => $result['created']])
+            ->response()
+            ->setStatusCode($result['created'] ? 201 : 200);
     }
 
     public function changeStatus(Request $request, Estimate $estimate)

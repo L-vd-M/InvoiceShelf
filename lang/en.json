@@ -317,6 +317,13 @@
   "estimates": {
     "title": "Estimates",
     "related_invoice": "Invoice",
+    "confirm_payment_issue_invoice": "Confirm payment & issue invoice",
+    "issue_invoice_description": "Records the payment, creates the paid invoice linked to this quote, and (optionally) emails it to the customer.",
+    "payment_amount": "Amount received",
+    "payment_notes": "Payment reference / notes",
+    "email_invoice_to_customer": "Email the paid invoice to the customer",
+    "issue_invoice": "Confirm & issue invoice",
+    "invoice_issued": "Invoice issued and linked to this quote",
     "accept_estimate": "Accept Estimate",
     "reject_estimate": "Reject Estimate",
     "estimate": "Estimate | Estimates",

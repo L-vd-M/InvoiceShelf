@@ -102,6 +102,14 @@ export const estimateService = {
     return data
   },
 
+  async issueInvoice(
+    id: number,
+    payload: { payment_date: string; amount: number; notes?: string | null; send_email: boolean },
+  ): Promise<ApiResponse<Invoice> & { created: boolean }> {
+    const { data } = await client.post(`${API.ESTIMATES}/${id}/issue-invoice`, payload)
+    return data
+  },
+
   async getNextNumber(params?: { key?: string }): Promise<NextNumberResponse> {
     const { data } = await client.get(API.NEXT_NUMBER, { params: { key: 'estimate', ...params } })
     return data
