@@ -130,7 +130,7 @@ class RecurringInvoiceService
             ->setModel(new Invoice)
             ->setCompany($recurringInvoice->company_id)
             ->setCustomer($recurringInvoice->customer_id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $days = intval(CompanySetting::getSetting('invoice_due_date_days', $recurringInvoice->company_id));
 

@@ -71,7 +71,7 @@ class QuoteToInvoiceService
             ->setModel(new Payment)
             ->setCompany($estimate->company_id)
             ->setCustomer($estimate->customer_id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $payment = Payment::create([
             'payment_number' => $serial->getNextNumber(),

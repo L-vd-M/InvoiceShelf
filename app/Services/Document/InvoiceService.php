@@ -16,6 +16,7 @@ use App\Services\Mail\CompanyMailConfigService;
 use App\Support\Pdf\PdfTemplateUtils;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -26,6 +27,11 @@ class InvoiceService
     ) {}
 
     public function create(Request $request): Invoice
+    {
+        return DB::transaction(fn () => $this->createInTransaction($request));
+    }
+
+    private function createInTransaction(Request $request): Invoice
     {
         $data = $request->getInvoicePayload();
 
@@ -39,10 +45,21 @@ class InvoiceService
             ->setModel($invoice)
             ->setCompany($invoice->company_id)
             ->setCustomer($invoice->customer_id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $invoice->sequence_number = $serial->nextSequenceNumber;
         $invoice->customer_sequence_number = $serial->nextCustomerSequenceNumber;
+
+        // The number the form showed was read before this request took its place in the queue.
+        // If someone else issued that same text meanwhile, use the number reserved here.
+        $taken = Invoice::where('company_id', $invoice->company_id)
+            ->where('invoice_number', $invoice->invoice_number)
+            ->where('id', '<>', $invoice->id)
+            ->exists();
+        if ($taken) {
+            $invoice->invoice_number = $serial->getNextNumber();
+        }
+
         $invoice->unique_hash = Hashids::connection(Invoice::class)->encode($invoice->id);
         $invoice->save();
 
@@ -81,7 +98,7 @@ class InvoiceService
             ->setCompany($invoice->company_id)
             ->setCustomer($request->customer_id)
             ->setModelObject($invoice->id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $data = $request->getInvoicePayload();
         $oldTotal = $invoice->total;
@@ -318,13 +335,18 @@ class InvoiceService
 
     public function clone(Invoice $invoice): Invoice
     {
+        return DB::transaction(fn () => $this->cloneInTransaction($invoice));
+    }
+
+    private function cloneInTransaction(Invoice $invoice): Invoice
+    {
         $date = Carbon::now();
 
         $serial = (new SerialNumberService)
             ->setModel($invoice)
             ->setCompany($invoice->company_id)
             ->setCustomer($invoice->customer_id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $dueDate = null;
         $dueDateEnabled = CompanySetting::getSetting(
@@ -409,7 +431,7 @@ class InvoiceService
             ->setModel(new Estimate)
             ->setCompany($invoice->company_id)
             ->setCustomer($invoice->customer_id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $exchangeRate = $invoice->exchange_rate;
 

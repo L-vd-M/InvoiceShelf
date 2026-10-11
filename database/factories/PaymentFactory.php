@@ -27,7 +27,7 @@ class PaymentFactory extends Factory
         $sequenceNumber = (new SerialNumberService)
             ->setModel(new Payment)
             ->setCompany(User::find(1)->companies()->first()->id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         return [
             'company_id' => User::find(1)->companies()->first()->id,

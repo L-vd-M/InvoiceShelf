@@ -71,7 +71,7 @@ class EstimateFactory extends Factory
         $sequenceNumber = (new SerialNumberService)
             ->setModel(new Estimate)
             ->setCompany(User::find(1)->companies()->first()->id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         return [
             'estimate_date' => $this->faker->date('Y-m-d', 'now'),

@@ -13,11 +13,17 @@ use App\Models\Payment;
 use App\Services\Mail\CompanyMailConfigService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 
 class PaymentService
 {
     public function create(Request $request): Payment
+    {
+        return DB::transaction(fn () => $this->createInTransaction($request));
+    }
+
+    private function createInTransaction(Request $request): Payment
     {
         $data = $request->getPaymentPayload();
 
@@ -33,7 +39,7 @@ class PaymentService
             ->setModel($payment)
             ->setCompany($payment->company_id)
             ->setCustomer($payment->customer_id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $payment->sequence_number = $serial->nextSequenceNumber;
         $payment->customer_sequence_number = $serial->nextCustomerSequenceNumber;
@@ -84,7 +90,7 @@ class PaymentService
             ->setCompany($payment->company_id)
             ->setCustomer($request->customer_id)
             ->setModelObject($payment->id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $data['customer_sequence_number'] = $serial->nextCustomerSequenceNumber;
         $payment->update($data);
@@ -192,13 +198,18 @@ class PaymentService
 
     public function generateFromTransaction($transaction): Payment
     {
+        return DB::transaction(fn () => $this->generateFromTransactionInTransaction($transaction));
+    }
+
+    private function generateFromTransactionInTransaction($transaction): Payment
+    {
         $invoice = Invoice::find($transaction->invoice_id);
 
         $serial = (new SerialNumberService)
             ->setModel(new Payment)
             ->setCompany($invoice->company_id)
             ->setCustomer($invoice->customer_id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $data['payment_number'] = $serial->getNextNumber();
         $data['payment_date'] = Carbon::now();

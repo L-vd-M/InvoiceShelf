@@ -4,6 +4,7 @@ namespace App\Services\Document;
 
 use App\Models\CompanySetting;
 use App\Models\Customer;
+use Illuminate\Support\Facades\DB;
 
 class SerialNumberService
 {
@@ -96,6 +97,54 @@ class SerialNumberService
         );
 
         return $serialNumber;
+    }
+
+    /**
+     * Like setNextNumbers(), but takes the company sequence from a locked counter row so two
+     * concurrent requests can never receive the same number. Call it inside the transaction that
+     * saves the document: the lock is held until commit and a rollback returns the number.
+     */
+    public function reserveNextNumbers()
+    {
+        if (! $this->nextSequenceNumber) {
+            // a document without a company has no counter row to lock
+            $this->company ? $this->reserveSequenceNumber() : $this->setNextSequenceNumber();
+        }
+
+        if (! $this->nextCustomerSequenceNumber) {
+            $this->setNextCustomerSequenceNumber();
+        }
+
+        return $this;
+    }
+
+    private function reserveSequenceNumber(): void
+    {
+        $type = strtolower(class_basename($this->model));
+        $where = ['company_id' => $this->company, 'document_type' => $type];
+
+        DB::transaction(function () use ($where) {
+            $counter = DB::table('document_counters')->where($where)->lockForUpdate()->first();
+
+            if (! $counter) {
+                DB::table('document_counters')->insertOrIgnore($where + [
+                    'last_sequence' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $counter = DB::table('document_counters')->where($where)->lockForUpdate()->first();
+            }
+
+            $highest = (int) $this->model::where('company_id', $this->company)->max('sequence_number');
+            $next = max((int) $counter->last_sequence, $highest) + 1;
+
+            DB::table('document_counters')->where($where)->update([
+                'last_sequence' => $next,
+                'updated_at' => now(),
+            ]);
+
+            $this->nextSequenceNumber = $next;
+        });
     }
 
     public function setNextNumbers()
