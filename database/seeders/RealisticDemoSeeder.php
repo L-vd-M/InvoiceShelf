@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Facades\Hashids;
 use App\Models\Address;
 use App\Models\AiConversation;
 use App\Models\CompanySetting;
@@ -454,6 +455,7 @@ class RealisticDemoSeeder extends Seeder
         // `latest('invoice_date')` match `latest('created_at')` plausibly.
         $invoice->created_at = $invoiceDate;
         $invoice->updated_at = $invoiceDate;
+        $invoice->unique_hash = Hashids::connection(Invoice::class)->encode($invoice->id);
         $invoice->save();
 
         foreach ($lines as $line) {
@@ -587,6 +589,7 @@ class RealisticDemoSeeder extends Seeder
 
         $estimate->created_at = $estimateDate;
         $estimate->updated_at = $estimateDate;
+        $estimate->unique_hash = Hashids::connection(Estimate::class)->encode($estimate->id);
         $estimate->save();
 
         foreach ($lines as $line) {
