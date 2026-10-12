@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { useGlobalStore } from '@/scripts/stores/global.store'
 import { computed, ref, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useCustomerStore } from '../store'
 import { useDebounceFn } from '@vueuse/core'
 import LoadingIcon from '@/scripts/components/icons/LoadingIcon.vue'
+
+const globalStore = useGlobalStore()
 
 interface SearchData {
   orderBy: string | null
@@ -141,7 +144,10 @@ loadCustomers()
 
 <template>
   <div
-    class="fixed top-0 left-0 hidden h-full pt-16 pb-[6.6rem] ml-56 bg-surface xl:ml-64 w-88 xl:block"
+    :class="[
+        'fixed top-0 left-0 hidden h-full pt-16 pb-[6.6rem] bg-surface w-88 xl:block transition-all duration-300',
+        globalStore.isSidebarCollapsed ? 'ml-16' : 'ml-56 xl:ml-64',
+      ]"
   >
     <div
       class="flex items-center justify-between px-4 pt-8 pb-2 border border-line-default border-solid height-full"

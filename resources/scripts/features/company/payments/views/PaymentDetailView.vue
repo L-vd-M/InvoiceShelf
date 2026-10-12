@@ -25,7 +25,10 @@
 
     <!-- Sidebar -->
     <div
-      class="fixed top-0 left-0 hidden h-full pt-16 pb-[6rem] ml-56 bg-surface xl:ml-64 w-88 xl:block"
+      :class="[
+        'fixed top-0 left-0 hidden h-full pt-16 pb-[6rem] bg-surface w-88 xl:block transition-all duration-300',
+        globalStore.isSidebarCollapsed ? 'ml-16' : 'ml-56 xl:ml-64',
+      ]"
     >
       <div
         class="flex items-center justify-between px-4 pt-8 pb-6 border border-line-default border-solid"
@@ -158,6 +161,7 @@
 </template>
 
 <script setup lang="ts">
+import { useGlobalStore } from '@/scripts/stores/global.store'
 import { ref, reactive, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -168,6 +172,8 @@ import LoadingIcon from '@/scripts/components/icons/LoadingIcon.vue'
 import { useUserStore } from '../../../../stores/user.store'
 import { useModalStore } from '../../../../stores/modal.store'
 import type { Payment } from '../../../../types/domain/payment'
+
+const globalStore = useGlobalStore()
 
 interface Props {
   canEdit?: boolean
