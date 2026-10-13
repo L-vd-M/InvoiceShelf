@@ -92,6 +92,11 @@ class Invoice extends Model implements HasMedia
         return $this->hasMany(Tax::class);
     }
 
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CreditNote::class);
+    }
+
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);

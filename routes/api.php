@@ -41,6 +41,7 @@ use App\Http\Controllers\Company\General\InvitationResponseController;
 use App\Http\Controllers\Company\General\NotesController;
 use App\Http\Controllers\Company\General\SearchController;
 use App\Http\Controllers\Company\General\SerialNumberController;
+use App\Http\Controllers\Company\CreditNote\CreditNotesController;
 use App\Http\Controllers\Company\Invoice\InvoicesController;
 use App\Http\Controllers\Company\Invoice\InvoiceTemplatesController;
 use App\Http\Controllers\Company\Item\ItemsController;
@@ -302,6 +303,14 @@ Route::prefix('/v1')->group(function () {
             Route::get('/invoices/templates', InvoiceTemplatesController::class);
 
             Route::apiResource('invoices', InvoicesController::class);
+
+            Route::post('/invoices/{invoice}/credit-notes', [CreditNotesController::class, 'store']);
+
+            Route::get('/credit-notes', [CreditNotesController::class, 'index']);
+
+            Route::get('/credit-notes/{creditNote}', [CreditNotesController::class, 'show']);
+
+            Route::get('/credit-notes/{creditNote}/pdf', [CreditNotesController::class, 'pdf']);
 
             // Recurring Invoice
             // -------------------------------------------------
