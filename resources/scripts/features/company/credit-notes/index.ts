@@ -1,0 +1,1 @@
+export { creditNoteRoutes } from './routes'

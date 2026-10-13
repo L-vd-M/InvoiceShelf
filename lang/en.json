@@ -9,6 +9,7 @@
     "expenses": "Expenses",
     "estimates": "Estimates",
     "payments": "Payments",
+    "credit_notes": "Credit notes",
     "reports": "Reports",
     "settings": "Settings",
     "logout": "Logout",
@@ -431,6 +432,38 @@
       "type_item_description": "Type Item Description (optional)"
     },
     "mark_as_default_estimate_template_description": "If enabled, the selected template will be automatically selected for new estimates."
+  },
+  "credit_notes": {
+    "title": "Credit notes",
+    "create": "Create credit note",
+    "create_title": "Create credit note",
+    "issue": "Issue credit note",
+    "against": "Against invoice",
+    "against_invoice": "Invoice",
+    "remaining": "Still creditable",
+    "reason": "Reason",
+    "line": "Line",
+    "left": "Left to credit",
+    "credit_qty": "Credit quantity",
+    "lines_total": "Credit total of the lines",
+    "nothing_to_credit": "This invoice has nothing left to credit, or it is still a draft.",
+    "number": "Number",
+    "date": "Date",
+    "customer": "Customer",
+    "total": "Total",
+    "unapplied": "Held as credit",
+    "none": "No credit notes yet",
+    "loading": "Loading...",
+    "previous": "Previous",
+    "next": "Next",
+    "reasons": {
+      "goods_returned": "Goods returned",
+      "price_correction": "Price correction",
+      "billing_error": "Billing error",
+      "service_not_delivered": "Service not delivered",
+      "goodwill": "Goodwill",
+      "other": "Other (type a reason)"
+    }
   },
   "invoices": {
     "title": "Invoices",

@@ -63,6 +63,13 @@ class CreditNotesController extends Controller
         return (new CreditNoteResource($creditNote))->response()->setStatusCode(201);
     }
 
+    public function creditable(Invoice $invoice)
+    {
+        $this->authorize('view', $invoice);
+
+        return response()->json(['data' => $this->creditNoteService->creditable($invoice)]);
+    }
+
     public function pdf(CreditNote $creditNote)
     {
         $this->authorize('view', $creditNote->invoice);

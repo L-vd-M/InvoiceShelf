@@ -95,6 +95,37 @@ class CreditNoteService
         });
     }
 
+    /**
+     * What can still be credited on an invoice, for the credit note form.
+     */
+    public function creditable(Invoice $invoice): array
+    {
+        $items = InvoiceItem::where('invoice_id', $invoice->id)->orderBy('id')->get();
+        $already = CreditNoteItem::whereIn('invoice_item_id', $items->pluck('id'))
+            ->selectRaw('invoice_item_id, SUM(quantity) as qty')->groupBy('invoice_item_id')
+            ->pluck('qty', 'invoice_item_id');
+
+        return [
+            'invoice_id' => $invoice->id,
+            'invoice_number' => $invoice->invoice_number,
+            'total' => (int) $invoice->total,
+            'credited_total' => (int) $invoice->credited_total,
+            'remaining' => max(0, (int) $invoice->total - (int) $invoice->credited_total),
+            'due_amount' => (int) $invoice->due_amount,
+            'can_credit' => $invoice->status !== Invoice::STATUS_DRAFT && (int) $invoice->total > (int) $invoice->credited_total,
+            'items' => $items->map(fn ($item) => [
+                'invoice_item_id' => $item->id,
+                'name' => $item->name,
+                'description' => $item->description,
+                'quantity' => (float) $item->quantity,
+                'price' => (int) $item->price,
+                'total' => (int) $item->total,
+                'credited_quantity' => (float) ($already[$item->id] ?? 0),
+                'remaining_quantity' => max(0, (float) $item->quantity - (float) ($already[$item->id] ?? 0)),
+            ])->values()->all(),
+        ];
+    }
+
     private function assignNumber(CreditNote $creditNote): void
     {
         if (! CompanySetting::getSetting('creditnote_number_format', $creditNote->company_id)) {

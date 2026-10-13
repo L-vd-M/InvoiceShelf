@@ -33,6 +33,7 @@ class InvoiceResource extends JsonResource
             'total' => $this->total,
             'tax' => $this->tax,
             'due_amount' => $this->due_amount,
+            'credited_total' => (int) $this->credited_total,
             'sent' => $this->sent,
             'viewed' => $this->viewed,
             'unique_hash' => $this->unique_hash,

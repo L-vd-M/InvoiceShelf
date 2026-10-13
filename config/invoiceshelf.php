@@ -386,6 +386,18 @@ return [
             'model' => Invoice::class,
         ],
         [
+            'title' => 'navigation.credit_notes',
+            'group' => 'documents',
+            'group_label' => 'navigation.documents',
+            'priority' => 25,
+            'link' => '/admin/credit-notes',
+            'icon' => 'ReceiptRefundIcon',
+            'name' => 'CreditNotes',
+            'owner_only' => false,
+            'ability' => 'view-invoice',
+            'model' => Invoice::class,
+        ],
+        [
             'title' => 'navigation.payments',
             'group' => 'documents',
             'group_label' => 'navigation.documents',
