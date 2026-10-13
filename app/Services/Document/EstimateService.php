@@ -27,6 +27,11 @@ class EstimateService
 
     public function create(Request $request): Estimate
     {
+        return DB::transaction(fn () => $this->createInTransaction($request));
+    }
+
+    private function createInTransaction(Request $request): Estimate
+    {
         $data = $request->getEstimatePayload();
 
         if ($request->has('estimateSend')) {
@@ -39,7 +44,7 @@ class EstimateService
             ->setModel($estimate)
             ->setCompany($estimate->company_id)
             ->setCustomer($estimate->customer_id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $estimate->sequence_number = $serial->nextSequenceNumber;
         $estimate->customer_sequence_number = $serial->nextCustomerSequenceNumber;
@@ -75,7 +80,7 @@ class EstimateService
             ->setCompany($estimate->company_id)
             ->setCustomer($request->customer_id)
             ->setModelObject($estimate->id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $data['customer_sequence_number'] = $serial->nextCustomerSequenceNumber;
 
@@ -213,13 +218,18 @@ class EstimateService
 
     public function clone(Estimate $estimate): Estimate
     {
+        return DB::transaction(fn () => $this->cloneInTransaction($estimate));
+    }
+
+    private function cloneInTransaction(Estimate $estimate): Estimate
+    {
         $date = Carbon::now();
 
         $serial = (new SerialNumberService)
             ->setModel($estimate)
             ->setCompany($estimate->company_id)
             ->setCustomer($estimate->customer_id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $expiryDate = null;
         $expiryEnabled = CompanySetting::getSetting(
@@ -328,7 +338,7 @@ class EstimateService
             ->setModel(new Invoice)
             ->setCompany($estimate->company_id)
             ->setCustomer($estimate->customer_id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         $templateName = $estimate->getInvoiceTemplateName();
         $exchangeRate = $estimate->exchange_rate;

@@ -81,7 +81,7 @@ class InvoiceFactory extends Factory
         $sequenceNumber = (new SerialNumberService)
             ->setModel(new Invoice)
             ->setCompany(User::find(1)->companies()->first()->id)
-            ->setNextNumbers();
+            ->reserveNextNumbers();
 
         return [
             'invoice_date' => $this->faker->date('Y-m-d', 'now'),
