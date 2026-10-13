@@ -328,6 +328,7 @@ test('delete multiple invoices', function () {
 
     $data = [
         'ids' => $ids,
+        'reason' => 'entered twice by mistake',
     ];
 
     postJson('api/v1/invoices/delete', $data)

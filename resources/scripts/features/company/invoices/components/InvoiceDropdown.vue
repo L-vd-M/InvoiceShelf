@@ -181,6 +181,8 @@ function removeInvoice(): void {
   dialogStore.openDialog({
     title: t('general.are_you_sure'),
     message: t('invoices.confirm_delete'),
+    reasonRequired: true,
+    reasonLabel: t('general.deletion_reason'),
     yesLabel: t('general.ok'),
     noLabel: t('general.cancel'),
     variant: 'danger',
@@ -188,7 +190,7 @@ function removeInvoice(): void {
     size: 'lg',
   }).then(async (res: boolean) => {
     if (res) {
-      const response = await invoiceStore.deleteInvoice({ ids: [props.row.id] })
+      const response = await invoiceStore.deleteInvoice({ ids: [props.row.id], reason: dialogStore.reason })
       if (response.data.success) {
         router.push('/admin/invoices')
         props.table?.refresh()

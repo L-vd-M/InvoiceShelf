@@ -93,6 +93,7 @@
     "select_a_tax": "Select a tax",
     "search": "Search",
     "are_you_sure": "Are you sure?",
+    "deletion_reason": "Why is this being deleted? (kept in the audit log, at least 3 characters)",
     "list_is_empty": "List is empty.",
     "no_tax_found": "No tax found!",
     "four_zero_four": "404",

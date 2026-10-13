@@ -162,7 +162,7 @@ export const usePaymentStore = defineStore('payment', {
     },
 
     async deletePayment(
-      payload: { ids: number[] },
+      payload: { ids: number[]; reason: string },
     ): Promise<{ data: { success: boolean } }> {
       const response = await paymentService.delete(payload)
       const id = payload.ids[0]
@@ -173,9 +173,10 @@ export const usePaymentStore = defineStore('payment', {
       return { data: response }
     },
 
-    async deleteMultiplePayments(): Promise<{ data: { success: boolean } }> {
+    async deleteMultiplePayments(reason: string): Promise<{ data: { success: boolean } }> {
       const response = await paymentService.delete({
         ids: this.selectedPayments,
+        reason,
       })
       this.selectedPayments.forEach((paymentId) => {
         const index = this.payments.findIndex((p) => p.id === paymentId)

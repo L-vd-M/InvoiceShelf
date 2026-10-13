@@ -319,7 +319,7 @@ export const useInvoiceStore = defineStore('invoice', {
       return { data: response }
     },
 
-    async deleteInvoice(payload: { ids: number[] }): Promise<{ data: { success: boolean } }> {
+    async deleteInvoice(payload: { ids: number[]; reason: string }): Promise<{ data: { success: boolean } }> {
       const response = await invoiceService.delete(payload)
       const id = payload.ids[0]
       const index = this.invoices.findIndex((inv) => inv.id === id)
@@ -329,8 +329,8 @@ export const useInvoiceStore = defineStore('invoice', {
       return { data: response }
     },
 
-    async deleteMultipleInvoices(): Promise<{ data: { success: boolean } }> {
-      const response = await invoiceService.delete({ ids: this.selectedInvoices })
+    async deleteMultipleInvoices(reason: string): Promise<{ data: { success: boolean } }> {
+      const response = await invoiceService.delete({ ids: this.selectedInvoices, reason })
       this.selectedInvoices.forEach((invoiceId) => {
         const index = this.invoices.findIndex((inv) => inv.id === invoiceId)
         if (index !== -1) {

@@ -810,6 +810,8 @@ function removeMultipleInvoices(): void {
   dialogStore.openDialog({
     title: t('general.are_you_sure'),
     message: t('invoices.confirm_delete'),
+    reasonRequired: true,
+    reasonLabel: t('general.deletion_reason'),
     yesLabel: t('general.ok'),
     noLabel: t('general.cancel'),
     variant: 'danger',
@@ -817,7 +819,7 @@ function removeMultipleInvoices(): void {
     size: 'lg',
   }).then(async (res: boolean) => {
     if (res) {
-      const response = await invoiceStore.deleteMultipleInvoices()
+      const response = await invoiceStore.deleteMultipleInvoices(dialogStore.reason)
       if (response.data.success) {
         refreshTable()
         invoiceStore.$patch((state) => {

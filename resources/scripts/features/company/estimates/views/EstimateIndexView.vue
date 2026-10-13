@@ -478,6 +478,8 @@ function removeMultipleEstimates(): void {
   dialogStore.openDialog({
     title: t('general.are_you_sure'),
     message: t('estimates.confirm_delete'),
+    reasonRequired: true,
+    reasonLabel: t('general.deletion_reason'),
     yesLabel: t('general.ok'),
     noLabel: t('general.cancel'),
     variant: 'danger',
@@ -485,7 +487,7 @@ function removeMultipleEstimates(): void {
     size: 'lg',
   }).then(async (res: boolean) => {
     if (res) {
-      const response = await estimateStore.deleteMultipleEstimates()
+      const response = await estimateStore.deleteMultipleEstimates(dialogStore.reason)
       if (response.data) {
         refreshTable()
         estimateStore.$patch((state) => {

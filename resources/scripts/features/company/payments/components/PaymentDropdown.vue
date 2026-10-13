@@ -117,6 +117,8 @@ function removePayment(): void {
     .openDialog({
       title: t('general.are_you_sure'),
       message: t('payments.confirm_delete'),
+      reasonRequired: true,
+      reasonLabel: t('general.deletion_reason'),
       yesLabel: t('general.ok'),
       noLabel: t('general.cancel'),
       variant: 'danger',
@@ -126,7 +128,7 @@ function removePayment(): void {
     .then(async (res: boolean) => {
       if (res) {
         const payment = props.row as Payment
-        await paymentStore.deletePayment({ ids: [payment.id] })
+        await paymentStore.deletePayment({ ids: [payment.id], reason: dialogStore.reason })
         router.push('/admin/payments')
         props.table?.refresh()
       }
