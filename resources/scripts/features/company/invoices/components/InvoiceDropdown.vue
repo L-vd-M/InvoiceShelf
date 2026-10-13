@@ -62,6 +62,18 @@
       {{ $t('invoices.resend_invoice') }}
     </BaseDropdownItem>
 
+    <!-- Create credit note -->
+    <BaseDropdownItem
+      v-if="canCreate && row.status !== 'DRAFT'"
+      @click="createCreditNote"
+    >
+      <BaseIcon
+        name="ReceiptRefundIcon"
+        class="w-5 h-5 mr-3 text-subtle group-hover:text-muted"
+      />
+      {{ $t('credit_notes.create') }}
+    </BaseDropdownItem>
+
     <!-- Record Payment -->
     <router-link :to="`/admin/payments/${row.id}/create`">
       <BaseDropdownItem
@@ -251,6 +263,17 @@ function onMarkAsSent(): void {
       await invoiceStore.markAsSent({ id: props.row.id, status: 'SENT' })
       props.table?.refresh()
     }
+  })
+}
+
+function createCreditNote(): void {
+  modalStore.openModal({
+    title: t('credit_notes.create_title'),
+    componentName: 'CreateCreditNoteModal',
+    id: props.row.id,
+    data: props.row,
+    refreshData: props.loadData ?? (() => props.table?.refresh()),
+    variant: 'sm',
   })
 }
 

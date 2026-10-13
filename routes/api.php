@@ -304,6 +304,8 @@ Route::prefix('/v1')->group(function () {
 
             Route::apiResource('invoices', InvoicesController::class);
 
+            Route::get('/invoices/{invoice}/creditable', [CreditNotesController::class, 'creditable']);
+
             Route::post('/invoices/{invoice}/credit-notes', [CreditNotesController::class, 'store']);
 
             Route::get('/credit-notes', [CreditNotesController::class, 'index']);

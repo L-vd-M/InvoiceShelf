@@ -215,6 +215,7 @@
     <BasePdfPreview :src="shareableLink" />
 
     <SendInvoiceModal />
+    <CreateCreditNoteModal />
   </BasePage>
 </template>
 
@@ -226,6 +227,7 @@ import { useI18n } from 'vue-i18n'
 import { useInvoiceStore } from '../store'
 import InvoiceDropdown from '../components/InvoiceDropdown.vue'
 import SendInvoiceModal from '../components/SendInvoiceModal.vue'
+import CreateCreditNoteModal from '../components/CreateCreditNoteModal.vue'
 import LoadingIcon from '@/scripts/components/icons/LoadingIcon.vue'
 import { useUserStore } from '../../../../stores/user.store'
 import { useDialogStore } from '../../../../stores/dialog.store'

@@ -472,6 +472,7 @@
   </BasePage>
 
   <SendInvoiceModal />
+  <CreateCreditNoteModal />
 </template>
 
 <script setup lang="ts">
@@ -483,6 +484,7 @@ import { useInvoiceStore } from '../store'
 import { useRecurringInvoiceStore } from '../../recurring-invoices/store'
 import InvoiceDropdown from '../components/InvoiceDropdown.vue'
 import SendInvoiceModal from '../components/SendInvoiceModal.vue'
+import CreateCreditNoteModal from '../components/CreateCreditNoteModal.vue'
 import RecurringInvoiceDropdown from '../../recurring-invoices/components/RecurringInvoiceDropdown.vue'
 import { useUserStore } from '../../../../stores/user.store'
 import { useDialogStore } from '../../../../stores/dialog.store'

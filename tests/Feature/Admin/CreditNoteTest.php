@@ -112,3 +112,19 @@ test('credit notes can be listed, read and rendered as PDF', function () {
         ->and(substr($pdf->getContent(), 0, 4))->toBe('%PDF')
         ->and(CreditNote::count())->toBe(1);
 });
+
+test('the creditable endpoint reports what is left per line', function () {
+    $invoice = ($this->makeInvoice)();
+    postJson("api/v1/invoices/{$invoice->id}/credit-notes", [
+        'reason_code' => 'goods_returned',
+        'items' => [['invoice_item_id' => $this->lineA->id, 'quantity' => 1]],
+    ])->assertCreated();
+
+    $data = getJson("api/v1/invoices/{$invoice->id}/creditable")->assertOk()->json('data');
+
+    expect($data['remaining'])->toBe(20000)
+        ->and($data['can_credit'])->toBeTrue()
+        ->and($data['items'][0]['remaining_quantity'])->toEqual(1)
+        ->and($data['items'][0]['credited_quantity'])->toEqual(1)
+        ->and($data['items'][1]['remaining_quantity'])->toEqual(1);
+});
