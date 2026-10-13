@@ -84,7 +84,7 @@ class PaymentsController extends Controller
             ->whereIn('id', $request->ids)
             ->pluck('id');
 
-        $this->paymentService->delete($ids, $request->reason);
+        $this->paymentService->delete($ids, $request->reason_code, $request->reasonText());
 
         return response()->json([
             'success' => true,

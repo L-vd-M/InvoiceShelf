@@ -67,14 +67,14 @@ test('mark_estimate_as_accepted convert action still works', function () {
 test('deleting an estimate that has an invoice is refused', function () {
     postJson("api/v1/estimates/{$this->estimate->id}/convert-to-invoice")->assertOk();
 
-    postJson('api/v1/estimates/delete', ['ids' => [$this->estimate->id], 'reason' => 'test removal'])
+    postJson('api/v1/estimates/delete', ['ids' => [$this->estimate->id], 'reason_code' => 'created_in_error'])
         ->assertJsonValidationErrors('ids.0');
 
     $this->assertDatabaseHas('estimates', ['id' => $this->estimate->id]);
 });
 
 test('an estimate without an invoice can still be deleted', function () {
-    postJson('api/v1/estimates/delete', ['ids' => [$this->estimate->id], 'reason' => 'test removal'])->assertOk();
+    postJson('api/v1/estimates/delete', ['ids' => [$this->estimate->id], 'reason_code' => 'created_in_error'])->assertOk();
 
     $this->assertDatabaseMissing('estimates', ['id' => $this->estimate->id]);
 });

@@ -429,7 +429,7 @@ function removeMultiplePayments(): void {
     })
     .then(async (res: boolean) => {
       if (res) {
-        const response = await paymentStore.deleteMultiplePayments(dialogStore.reason)
+        const response = await paymentStore.deleteMultiplePayments({ reason_code: dialogStore.reasonCode, reason: dialogStore.reason })
         if (response.data.success) {
           refreshTable()
         }

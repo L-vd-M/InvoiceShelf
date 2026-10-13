@@ -190,7 +190,7 @@ function removeInvoice(): void {
     size: 'lg',
   }).then(async (res: boolean) => {
     if (res) {
-      const response = await invoiceStore.deleteInvoice({ ids: [props.row.id], reason: dialogStore.reason })
+      const response = await invoiceStore.deleteInvoice({ ids: [props.row.id], reason_code: dialogStore.reasonCode, reason: dialogStore.reason })
       if (response.data.success) {
         router.push('/admin/invoices')
         props.table?.refresh()

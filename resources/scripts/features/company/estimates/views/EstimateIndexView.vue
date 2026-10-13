@@ -487,7 +487,7 @@ function removeMultipleEstimates(): void {
     size: 'lg',
   }).then(async (res: boolean) => {
     if (res) {
-      const response = await estimateStore.deleteMultipleEstimates(dialogStore.reason)
+      const response = await estimateStore.deleteMultipleEstimates({ reason_code: dialogStore.reasonCode, reason: dialogStore.reason })
       if (response.data) {
         refreshTable()
         estimateStore.$patch((state) => {

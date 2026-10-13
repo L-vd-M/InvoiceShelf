@@ -217,7 +217,7 @@ function removeEstimate(): void {
     size: 'lg',
   }).then(async (res: boolean) => {
     if (res) {
-      const response = await estimateStore.deleteEstimate({ ids: [props.row.id], reason: dialogStore.reason })
+      const response = await estimateStore.deleteEstimate({ ids: [props.row.id], reason_code: dialogStore.reasonCode, reason: dialogStore.reason })
       if (response.data) {
         props.table?.refresh()
         if (response.data.success) {

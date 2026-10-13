@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\RequiresDeletionReason;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class DeletePaymentsRequest extends FormRequest
 {
+    use RequiresDeletionReason;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -21,12 +24,7 @@ class DeletePaymentsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'reason' => [
-                'required',
-                'string',
-                'min:3',
-                'max:500',
-            ],
+            ...$this->deletionReasonRules(),
             'ids' => [
                 'required',
             ],

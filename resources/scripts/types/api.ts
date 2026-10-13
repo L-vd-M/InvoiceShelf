@@ -38,5 +38,6 @@ export interface NextNumberResponse {
 
 export interface DeletePayload {
   ids: number[]
+  reason_code?: string
   reason?: string
 }

@@ -5,6 +5,21 @@ export type DialogVariant = 'primary' | 'danger'
 
 export type DialogSize = 'sm' | 'md' | 'lg'
 
+export interface DeletionReasonPayload {
+  reason_code: string
+  reason?: string
+}
+
+export const DELETION_REASON_CODES = [
+  'created_in_error',
+  'duplicate',
+  'wrong_customer',
+  'wrong_amounts',
+  'customer_cancelled',
+  'superseded',
+  'other',
+] as const
+
 export interface OpenDialogPayload {
   title: string
   message: string
@@ -31,7 +46,8 @@ export const useDialogStore = defineStore('dialog', () => {
   const hideNoButton = ref<boolean>(false)
   const reasonRequired = ref<boolean>(false)
   const reasonLabel = ref<string>('')
-  // text typed into the dialog; stays readable after the dialog closes so the caller can send it
+  // chosen option and typed text; both stay readable after the dialog closes so the caller can send them
+  const reasonCode = ref<string>('')
   const reason = ref<string>('')
   const resolve = ref<((value: boolean) => void) | null>(null)
 
@@ -48,6 +64,7 @@ export const useDialogStore = defineStore('dialog', () => {
     hideNoButton.value = payload.hideNoButton ?? false
     reasonRequired.value = payload.reasonRequired ?? false
     reasonLabel.value = payload.reasonLabel ?? ''
+    reasonCode.value = ''
     reason.value = ''
 
     return new Promise<boolean>((res) => {
@@ -92,6 +109,7 @@ export const useDialogStore = defineStore('dialog', () => {
     hideNoButton,
     reasonRequired,
     reasonLabel,
+    reasonCode,
     reason,
     resolve,
     openDialog,

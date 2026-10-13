@@ -128,7 +128,7 @@ function removePayment(): void {
     .then(async (res: boolean) => {
       if (res) {
         const payment = props.row as Payment
-        await paymentStore.deletePayment({ ids: [payment.id], reason: dialogStore.reason })
+        await paymentStore.deletePayment({ ids: [payment.id], reason_code: dialogStore.reasonCode, reason: dialogStore.reason })
         router.push('/admin/payments')
         props.table?.refresh()
       }

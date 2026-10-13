@@ -819,7 +819,7 @@ function removeMultipleInvoices(): void {
     size: 'lg',
   }).then(async (res: boolean) => {
     if (res) {
-      const response = await invoiceStore.deleteMultipleInvoices(dialogStore.reason)
+      const response = await invoiceStore.deleteMultipleInvoices({ reason_code: dialogStore.reasonCode, reason: dialogStore.reason })
       if (response.data.success) {
         refreshTable()
         invoiceStore.$patch((state) => {

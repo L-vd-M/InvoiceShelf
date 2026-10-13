@@ -151,7 +151,7 @@ test('delete payment', function () {
 
     $data = [
         'ids' => $ids,
-        'reason' => 'entered twice by mistake',
+        'reason_code' => 'duplicate',
     ];
 
     $response = postJson('api/v1/payments/delete', $data);
