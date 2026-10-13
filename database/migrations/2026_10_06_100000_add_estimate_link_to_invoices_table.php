@@ -10,7 +10,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('invoices', function (Blueprint $table) {
-            $table->unsignedBigInteger('estimate_id')->nullable()->unique();
+            // estimates.id is an unsigned INT (increments); MariaDB/MySQL refuse an FK to a BIGINT column
+            $table->unsignedInteger('estimate_id')->nullable()->unique();
             $table->string('source_estimate_number')->nullable();
             $table->foreign('estimate_id')->references('id')->on('estimates')->nullOnDelete();
         });
