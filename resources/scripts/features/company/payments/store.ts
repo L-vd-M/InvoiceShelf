@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { DeletionReasonPayload } from '../../../stores/dialog.store'
 import { useNotificationStore } from '../../../stores/notification.store'
 import { paymentService } from '../../../api/services/payment.service'
 import type {
@@ -162,7 +163,7 @@ export const usePaymentStore = defineStore('payment', {
     },
 
     async deletePayment(
-      payload: { ids: number[]; reason: string },
+      payload: { ids: number[] } & DeletionReasonPayload,
     ): Promise<{ data: { success: boolean } }> {
       const response = await paymentService.delete(payload)
       const id = payload.ids[0]
@@ -173,10 +174,10 @@ export const usePaymentStore = defineStore('payment', {
       return { data: response }
     },
 
-    async deleteMultiplePayments(reason: string): Promise<{ data: { success: boolean } }> {
+    async deleteMultiplePayments(reason: DeletionReasonPayload): Promise<{ data: { success: boolean } }> {
       const response = await paymentService.delete({
         ids: this.selectedPayments,
-        reason,
+        ...reason,
       })
       this.selectedPayments.forEach((paymentId) => {
         const index = this.payments.findIndex((p) => p.id === paymentId)

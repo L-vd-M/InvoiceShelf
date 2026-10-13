@@ -95,7 +95,7 @@ class EstimatesController extends Controller
 
         DB::transaction(function () use ($ids, $request) {
             foreach (Estimate::whereIn('id', $ids)->get() as $estimate) {
-                DocumentDeletion::record($estimate, 'estimate', $request->reason);
+                DocumentDeletion::record($estimate, 'estimate', $request->reason_code, $request->reasonText());
             }
 
             Estimate::destroy($ids);

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { DeletionReasonPayload } from '../../../stores/dialog.store'
 import { useNotificationStore } from '../../../stores/notification.store'
 import { useCompanyStore } from '../../../stores/company.store'
 import { useUserStore } from '../../../stores/user.store'
@@ -323,7 +324,7 @@ export const useEstimateStore = defineStore('estimate', {
       return { data: response }
     },
 
-    async deleteEstimate(payload: { ids: number[]; reason: string }): Promise<{ data: { success: boolean } }> {
+    async deleteEstimate(payload: { ids: number[] } & DeletionReasonPayload): Promise<{ data: { success: boolean } }> {
       const response = await estimateService.delete(payload)
       const id = payload.ids[0]
       const index = this.estimates.findIndex((est) => est.id === id)
@@ -333,10 +334,10 @@ export const useEstimateStore = defineStore('estimate', {
       return { data: response }
     },
 
-    async deleteMultipleEstimates(reason: string): Promise<{ data: { success: boolean } }> {
+    async deleteMultipleEstimates(reason: DeletionReasonPayload): Promise<{ data: { success: boolean } }> {
       const response = await estimateService.delete({
         ids: this.selectedEstimates,
-        reason,
+        ...reason,
       })
       this.selectedEstimates.forEach((estId) => {
         const index = this.estimates.findIndex((est) => est.id === estId)

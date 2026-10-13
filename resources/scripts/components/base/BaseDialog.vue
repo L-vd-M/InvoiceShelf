@@ -112,12 +112,30 @@
                   <label for="dialog-reason" class="block text-sm font-medium text-heading">
                     {{ dialogStore.reasonLabel }}
                   </label>
-                  <textarea
+                  <select
                     id="dialog-reason"
+                    v-model="dialogStore.reasonCode"
+                    class="mt-1 block w-full rounded-md border border-line-default bg-surface p-2 text-sm text-heading"
+                  >
+                    <option value="" disabled>
+                      {{ $t('general.deletion_reason_choose') }}
+                    </option>
+                    <option
+                      v-for="code in DELETION_REASON_CODES"
+                      :key="code"
+                      :value="code"
+                    >
+                      {{ $t(`general.deletion_reasons.${code}`) }}
+                    </option>
+                  </select>
+                  <textarea
+                    v-if="dialogStore.reasonCode === 'other'"
+                    id="dialog-reason-text"
                     v-model="dialogStore.reason"
                     rows="3"
                     maxlength="500"
-                    class="mt-1 block w-full rounded-md border border-line-default bg-surface p-2 text-sm text-heading"
+                    :placeholder="$t('general.deletion_reason_other_hint')"
+                    class="mt-2 block w-full rounded-md border border-line-default bg-surface p-2 text-sm text-heading"
                   />
                 </div>
               </div>
@@ -157,7 +175,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useDialogStore } from '@/scripts/stores/dialog.store'
+import { DELETION_REASON_CODES, useDialogStore } from '@/scripts/stores/dialog.store'
 import {
   Dialog,
   DialogOverlay,
@@ -169,7 +187,10 @@ import {
 const dialogStore = useDialogStore()
 
 const canConfirm = computed<boolean>(
-  () => !dialogStore.reasonRequired || dialogStore.reason.trim().length >= 3,
+  () =>
+    !dialogStore.reasonRequired ||
+    (dialogStore.reasonCode !== '' &&
+      (dialogStore.reasonCode !== 'other' || dialogStore.reason.trim().length >= 3)),
 )
 
 function resolveDialog(resValue: boolean): void {

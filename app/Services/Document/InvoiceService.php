@@ -171,20 +171,20 @@ class InvoiceService
         ])->find($invoice->id);
     }
 
-    public function delete(Collection $ids, string $reason): bool
+    public function delete(Collection $ids, string $reasonCode, string $reason): bool
     {
-        return DB::transaction(function () use ($ids, $reason) {
+        return DB::transaction(function () use ($ids, $reasonCode, $reason) {
             foreach ($ids as $id) {
-                $this->deleteOne(Invoice::find($id), $reason);
+                $this->deleteOne(Invoice::find($id), $reasonCode, $reason);
             }
 
             return true;
         });
     }
 
-    private function deleteOne(Invoice $invoice, string $reason): void
+    private function deleteOne(Invoice $invoice, string $reasonCode, string $reason): void
     {
-        DocumentDeletion::record($invoice, 'invoice', $reason);
+        DocumentDeletion::record($invoice, 'invoice', $reasonCode, $reason);
 
         if ($invoice->transactions()->exists()) {
             $invoice->transactions()->delete();

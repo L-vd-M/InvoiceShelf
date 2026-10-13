@@ -115,11 +115,11 @@ class PaymentService
         ])->find($payment->id);
     }
 
-    public function delete(Collection $ids, string $reason): bool
+    public function delete(Collection $ids, string $reasonCode, string $reason): bool
     {
         foreach ($ids as $id) {
             $payment = Payment::find($id);
-            DocumentDeletion::record($payment, 'payment', $reason);
+            DocumentDeletion::record($payment, 'payment', $reasonCode, $reason);
 
             if ($payment->invoice_id != null) {
                 $invoice = Invoice::find($payment->invoice_id);

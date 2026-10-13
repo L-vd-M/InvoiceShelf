@@ -12,9 +12,27 @@ class DocumentDeletion extends Model
 {
     public const UPDATED_AT = null;
 
+    public const REASON_OTHER = 'other';
+
+    /** Standard reasons offered in the delete dialog; any other reason needs free text. */
+    public const REASONS = [
+        'created_in_error' => 'Created in error',
+        'duplicate' => 'Duplicate of another document',
+        'wrong_customer' => 'Wrong customer',
+        'wrong_amounts' => 'Wrong items or amounts',
+        'customer_cancelled' => 'Customer cancelled',
+        'superseded' => 'Replaced by a new document',
+        self::REASON_OTHER => 'Other',
+    ];
+
     protected $guarded = ['id'];
 
-    public static function record(Model $document, string $type, string $reason, ?int $userId = null): self
+    public static function reasonText(string $code, ?string $typed): string
+    {
+        return $code === self::REASON_OTHER ? trim((string) $typed) : self::REASONS[$code];
+    }
+
+    public static function record(Model $document, string $type, string $reasonCode, string $reason, ?int $userId = null): self
     {
         return static::create([
             'company_id' => $document->company_id,
@@ -26,6 +44,7 @@ class DocumentDeletion extends Model
             'total' => $document->total ?? $document->amount ?? null,
             'status_at_deletion' => $document->status ?? null,
             'paid_status_at_deletion' => $document->paid_status ?? null,
+            'reason_code' => $reasonCode,
             'reason' => $reason,
             'deleted_by' => $userId ?? auth()->id(),
         ]);
