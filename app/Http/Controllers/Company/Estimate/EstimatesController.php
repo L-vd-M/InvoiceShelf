@@ -10,6 +10,7 @@ use App\Http\Requests\SendEstimatesRequest;
 use App\Http\Resources\EstimateResource;
 use App\Http\Resources\InvoiceResource;
 use App\Jobs\GenerateEstimatePdfJob;
+use App\Models\DocumentDeletion;
 use App\Models\Estimate;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -17,6 +18,7 @@ use App\Services\Document\EstimateService;
 use App\Services\Document\QuoteToInvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class EstimatesController extends Controller
@@ -91,7 +93,13 @@ class EstimatesController extends Controller
             ->whereIn('id', $request->ids)
             ->pluck('id');
 
-        Estimate::destroy($ids);
+        DB::transaction(function () use ($ids, $request) {
+            foreach (Estimate::whereIn('id', $ids)->get() as $estimate) {
+                DocumentDeletion::record($estimate, 'estimate', $request->reason);
+            }
+
+            Estimate::destroy($ids);
+        });
 
         return response()->json([
             'success' => true,

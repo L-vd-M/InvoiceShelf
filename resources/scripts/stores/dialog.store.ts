@@ -14,6 +14,8 @@ export interface OpenDialogPayload {
   yesLabel?: string
   noLabel?: string
   hideNoButton?: boolean
+  reasonRequired?: boolean
+  reasonLabel?: string
 }
 
 export const useDialogStore = defineStore('dialog', () => {
@@ -27,6 +29,10 @@ export const useDialogStore = defineStore('dialog', () => {
   const yesLabel = ref<string>('Yes')
   const noLabel = ref<string>('No')
   const hideNoButton = ref<boolean>(false)
+  const reasonRequired = ref<boolean>(false)
+  const reasonLabel = ref<string>('')
+  // text typed into the dialog; stays readable after the dialog closes so the caller can send it
+  const reason = ref<string>('')
   const resolve = ref<((value: boolean) => void) | null>(null)
 
   // Actions
@@ -40,6 +46,9 @@ export const useDialogStore = defineStore('dialog', () => {
     yesLabel.value = payload.yesLabel ?? 'Yes'
     noLabel.value = payload.noLabel ?? 'No'
     hideNoButton.value = payload.hideNoButton ?? false
+    reasonRequired.value = payload.reasonRequired ?? false
+    reasonLabel.value = payload.reasonLabel ?? ''
+    reason.value = ''
 
     return new Promise<boolean>((res) => {
       resolve.value = res
@@ -81,6 +90,9 @@ export const useDialogStore = defineStore('dialog', () => {
     yesLabel,
     noLabel,
     hideNoButton,
+    reasonRequired,
+    reasonLabel,
+    reason,
     resolve,
     openDialog,
     confirm,

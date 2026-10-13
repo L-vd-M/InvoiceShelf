@@ -419,6 +419,8 @@ function removeMultiplePayments(): void {
     .openDialog({
       title: t('general.are_you_sure'),
       message: t('payments.confirm_delete'),
+      reasonRequired: true,
+      reasonLabel: t('general.deletion_reason'),
       yesLabel: t('general.ok'),
       noLabel: t('general.cancel'),
       variant: 'danger',
@@ -427,7 +429,7 @@ function removeMultiplePayments(): void {
     })
     .then(async (res: boolean) => {
       if (res) {
-        const response = await paymentStore.deleteMultiplePayments()
+        const response = await paymentStore.deleteMultiplePayments(dialogStore.reason)
         if (response.data.success) {
           refreshTable()
         }

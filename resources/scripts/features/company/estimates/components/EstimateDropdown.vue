@@ -208,6 +208,8 @@ function removeEstimate(): void {
   dialogStore.openDialog({
     title: t('general.are_you_sure'),
     message: t('estimates.confirm_delete'),
+    reasonRequired: true,
+    reasonLabel: t('general.deletion_reason'),
     yesLabel: t('general.ok'),
     noLabel: t('general.cancel'),
     variant: 'danger',
@@ -215,7 +217,7 @@ function removeEstimate(): void {
     size: 'lg',
   }).then(async (res: boolean) => {
     if (res) {
-      const response = await estimateStore.deleteEstimate({ ids: [props.row.id] })
+      const response = await estimateStore.deleteEstimate({ ids: [props.row.id], reason: dialogStore.reason })
       if (response.data) {
         props.table?.refresh()
         if (response.data.success) {

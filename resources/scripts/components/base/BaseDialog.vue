@@ -108,6 +108,18 @@
                     {{ dialogStore.message }}
                   </p>
                 </div>
+                <div v-if="dialogStore.reasonRequired" class="mt-4 text-left">
+                  <label for="dialog-reason" class="block text-sm font-medium text-heading">
+                    {{ dialogStore.reasonLabel }}
+                  </label>
+                  <textarea
+                    id="dialog-reason"
+                    v-model="dialogStore.reason"
+                    rows="3"
+                    maxlength="500"
+                    class="mt-1 block w-full rounded-md border border-line-default bg-surface p-2 text-sm text-heading"
+                  />
+                </div>
               </div>
             </div>
             <div
@@ -121,6 +133,7 @@
                 class="justify-center"
                 :variant="dialogStore.variant"
                 :class="{ 'w-full': dialogStore.hideNoButton }"
+                :disabled="!canConfirm"
                 @click="resolveDialog(true)"
               >
                 {{ dialogStore.yesLabel }}
@@ -155,7 +168,14 @@ import {
 
 const dialogStore = useDialogStore()
 
+const canConfirm = computed<boolean>(
+  () => !dialogStore.reasonRequired || dialogStore.reason.trim().length >= 3,
+)
+
 function resolveDialog(resValue: boolean): void {
+  if (resValue && !canConfirm.value) {
+    return
+  }
   dialogStore.resolve(resValue)
   dialogStore.closeDialog()
 }

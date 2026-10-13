@@ -271,6 +271,7 @@ test('delete multiple estimates', function () {
 
     $data = [
         'ids' => $ids,
+        'reason' => 'entered twice by mistake',
     ];
 
     $response = postJson('api/v1/estimates/delete', $data);

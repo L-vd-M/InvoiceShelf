@@ -109,7 +109,7 @@ class InvoicesController extends Controller
             ->whereIn('id', $request->ids)
             ->pluck('id');
 
-        $this->invoiceService->delete($ids);
+        $this->invoiceService->delete($ids, $request->reason);
 
         return response()->json([
             'success' => true,

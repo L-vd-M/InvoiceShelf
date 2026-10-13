@@ -9,6 +9,7 @@ use App\Mail\SendInvoiceMail;
 use App\Models\Company;
 use App\Models\CompanySetting;
 use App\Models\CustomField;
+use App\Models\DocumentDeletion;
 use App\Models\Estimate;
 use App\Models\ExchangeRateLog;
 use App\Models\Invoice;
@@ -170,19 +171,26 @@ class InvoiceService
         ])->find($invoice->id);
     }
 
-    public function delete(Collection $ids): bool
+    public function delete(Collection $ids, string $reason): bool
     {
-        foreach ($ids as $id) {
-            $invoice = Invoice::find($id);
-
-            if ($invoice->transactions()->exists()) {
-                $invoice->transactions()->delete();
+        return DB::transaction(function () use ($ids, $reason) {
+            foreach ($ids as $id) {
+                $this->deleteOne(Invoice::find($id), $reason);
             }
 
-            $invoice->delete();
+            return true;
+        });
+    }
+
+    private function deleteOne(Invoice $invoice, string $reason): void
+    {
+        DocumentDeletion::record($invoice, 'invoice', $reason);
+
+        if ($invoice->transactions()->exists()) {
+            $invoice->transactions()->delete();
         }
 
-        return true;
+        $invoice->delete();
     }
 
     public function sendInvoiceData(Invoice $invoice, array $data): array
