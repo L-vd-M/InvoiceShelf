@@ -43,8 +43,10 @@ return new class extends Migration
             // upgrade over that: skip the unique index for that table and say so in the log.
             $duplicates = DB::table($tableName)
                 ->whereNotNull('sequence_number')
+                ->select('company_id', 'sequence_number')
                 ->groupBy('company_id', 'sequence_number')
                 ->havingRaw('count(*) > 1')
+                ->get()
                 ->count();
 
             if ($duplicates > 0) {
@@ -63,6 +65,9 @@ return new class extends Migration
     {
         foreach (array_keys(self::TABLES) as $tableName) {
             if (collect(Schema::getIndexes($tableName))->contains('name', "{$tableName}_company_sequence_unique")) {
+                // MySQL/MariaDB reuse this unique index for the company_id foreign key, so give the
+                // key its own index before the unique one can be dropped.
+                Schema::table($tableName, fn (Blueprint $table) => $table->index('company_id', "{$tableName}_company_id_index"));
                 Schema::table($tableName, fn (Blueprint $table) => $table->dropUnique("{$tableName}_company_sequence_unique"));
             }
         }
