@@ -1,7 +1,7 @@
 import { client } from '../client'
 import { API } from '../endpoints'
 import type { ExchangeRateProvider, Currency } from '@/scripts/types/domain/currency'
-import type { ApiResponse, ListParams } from '@/scripts/types/api'
+import type { ApiResponse, ListParams, PaginatedResponse } from '@/scripts/types/api'
 
 export interface CreateExchangeRateProviderPayload {
   driver: string
@@ -73,7 +73,7 @@ export interface SupportedCurrenciesParams {
 
 export const exchangeRateService = {
   // Providers CRUD
-  async listProviders(params?: ListParams): Promise<ApiResponse<ExchangeRateProvider[]>> {
+  async listProviders(params?: ListParams): Promise<PaginatedResponse<ExchangeRateProvider>> {
     const { data } = await client.get(API.EXCHANGE_RATE_PROVIDERS, { params })
     return data
   },

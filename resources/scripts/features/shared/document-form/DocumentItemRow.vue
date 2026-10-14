@@ -173,7 +173,7 @@
                 :discounted-total="total"
                 :total-tax="totalSimpleTax"
                 :total="subtotal"
-                :currency="currency"
+                :currency="selectedCurrency"
                 :update-items="syncItemToStore"
                 :ability="'create-invoice'"
                 :store="store"
@@ -199,20 +199,16 @@ import DocumentItemRowTax from './DocumentItemRowTax.vue'
 import DragIcon from '@/scripts/components/icons/DragIcon.vue'
 import { generateClientId } from '../../../utils'
 import type { Currency } from '../../../types/domain/currency'
-import type { DocumentItem, DocumentFormData, DocumentTax } from './use-document-calculations'
+import type { DocumentItem, DocumentFormData, DocumentTax, DocumentStoreProp } from './use-document-calculations'
 
 interface Props {
-  store: Record<string, unknown> & {
-    removeItem: (index: number) => void
-    updateItem: (data: Record<string, unknown>) => void
-    $patch: (fn: (state: Record<string, unknown>) => void) => void
-  }
+  store: DocumentStoreProp
   storeProp: string
   itemData: DocumentItem
   index: number
   type?: string
   loading?: boolean
-  currency: Currency | Record<string, unknown>
+  currency: Currency | Record<string, unknown> | string | null
   invoiceItems: DocumentItem[]
   itemValidationScope?: string
 }
@@ -275,8 +271,8 @@ const total = computed<number>(() => {
   return subtotal.value - props.itemData.discount_val
 })
 
-const selectedCurrency = computed(() => {
-  if (props.currency) {
+const selectedCurrency = computed<Currency | Record<string, unknown> | null>(() => {
+  if (props.currency && typeof props.currency === 'object') {
     return props.currency
   }
   return null

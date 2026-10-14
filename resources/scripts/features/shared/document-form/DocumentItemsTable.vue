@@ -115,10 +115,10 @@ import draggable from 'vuedraggable'
 import DocumentItemRow from './DocumentItemRow.vue'
 import ItemModal from '@/scripts/features/company/items/components/ItemModal.vue'
 import type { Currency } from '../../../types/domain/currency'
-import type { DocumentFormData } from './use-document-calculations'
+import type { DocumentFormData, DocumentStoreProp } from './use-document-calculations'
 
 interface Props {
-  store: Record<string, unknown> & {
+  store: DocumentStoreProp & {
     addItem: () => void
   }
   storeProp: string

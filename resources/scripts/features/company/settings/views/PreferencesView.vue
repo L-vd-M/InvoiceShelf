@@ -14,9 +14,23 @@ const isSaving = ref<boolean>(false)
 const isDataSaving = ref<boolean>(false)
 const isFetchingInitialData = ref<boolean>(false)
 
-const settingsForm = reactive<Record<string, string>>({
+type PreferencesForm = Record<
+  | 'currency'
+  | 'language'
+  | 'carbon_date_format'
+  | 'moment_date_format'
+  | 'carbon_time_format'
+  | 'moment_time_format'
+  | 'time_zone'
+  | 'fiscal_year'
+  | 'invoice_use_time',
+  string
+> &
+  Record<string, string>
+
+const settingsForm = reactive<PreferencesForm>({
   ...companyStore.selectedCompanySettings,
-})
+} as PreferencesForm)
 
 const fiscalYearsList = computed(() => {
   const config = globalStore.config as Record<string, unknown> | null
@@ -148,9 +162,8 @@ async function updatePreferencesData(): Promise<void> {
   delete data.settings.link_expiry_days
 
   if (companyStore.selectedCompanySettings.language !== settingsForm.language) {
-    const win = window as Record<string, unknown>
-    if (typeof win.loadLanguage === 'function') {
-      await (win.loadLanguage as (lang: string) => Promise<void>)(settingsForm.language)
+    if (typeof window.loadLanguage === 'function') {
+      await window.loadLanguage(settingsForm.language)
     }
   }
 

@@ -5,12 +5,15 @@ import * as Vue from 'vue'
 import InvoiceShelf from './InvoiceShelf'
 
 // Expose Vue runtime for module scripts that import from the shim.
-;(window as Record<string, unknown>).__invoiceshelf_vue = Vue
+;window.__invoiceshelf_vue = Vue
 
 declare global {
   interface Window {
     InvoiceShelf: InvoiceShelf
     loadLanguage?: (locale: string) => Promise<void>
+    __invoiceshelf_vue?: unknown
+    __taxTypes?: unknown[]
+    __userHasAbility?: (ability: string) => boolean
     customer_logo?: string
     customer_page_title?: string
     login_page_logo?: string

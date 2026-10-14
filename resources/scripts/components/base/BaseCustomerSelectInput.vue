@@ -47,7 +47,7 @@ async function searchCustomers(search: string) {
 
   if (results.length > 0 && customerStore.editCustomer) {
     const customerFound = results.find(
-      (c: Record<string, unknown>) => c.id === customerStore.editCustomer?.id
+      (c) => c.id === customerStore.editCustomer?.id
     )
     if (!customerFound) {
       const editCopy = { ...customerStore.editCustomer }

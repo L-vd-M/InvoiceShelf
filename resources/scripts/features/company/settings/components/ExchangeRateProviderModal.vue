@@ -259,7 +259,7 @@ async function submitExchangeRate(): Promise<void> {
       })
     } else {
       await exchangeRateService.createProvider(
-        data as Parameters<typeof exchangeRateService.createProvider>[0]
+        data as unknown as Parameters<typeof exchangeRateService.createProvider>[0]
       )
       notificationStore.showNotification({
         type: 'success',

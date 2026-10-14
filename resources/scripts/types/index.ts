@@ -56,7 +56,6 @@ export type {
   NoteType,
   Module,
   InstalledModule,
-  ModuleAuthor,
   ModuleVersion,
   ModuleLink,
   ModuleReview,

@@ -54,12 +54,12 @@ import { exchangeRateService } from '../../../api/services/exchange-rate.service
 import { useCompanyStore } from '../../../stores/company.store'
 import { useGlobalStore } from '../../../stores/global.store'
 import type { Currency } from '../../../types/domain/currency'
-import type { DocumentFormData } from './use-document-calculations'
+import type { DocumentFormData, DocumentStoreProp } from './use-document-calculations'
 
 interface Props {
   v: Record<string, { $error: boolean; $errors: Array<{ $message: string }>; $touch: () => void }>
   isLoading?: boolean
-  store: Record<string, unknown> & {
+  store: DocumentStoreProp & {
     showExchangeRate: boolean
   }
   storeProp: string

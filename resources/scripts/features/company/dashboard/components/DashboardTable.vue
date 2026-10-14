@@ -32,8 +32,8 @@ const dashboardStore = useDashboardStore()
 const { t } = useI18n()
 const userStore = useUserStore()
 
-const invoiceTableComponent = ref<InstanceType<typeof Object> | null>(null)
-const estimateTableComponent = ref<InstanceType<typeof Object> | null>(null)
+const invoiceTableComponent = ref<{ refresh: () => void } | null>(null)
+const estimateTableComponent = ref<{ refresh: () => void } | null>(null)
 
 const dueInvoiceColumns = computed<TableColumn[]>(() => [
   {

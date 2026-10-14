@@ -76,11 +76,11 @@ import { useI18n } from 'vue-i18n'
 import { useModalStore } from '../../../stores/modal.store'
 import type { TaxType } from '../../../types/domain/tax'
 import type { Currency } from '../../../types/domain/currency'
-import type { DocumentFormData, DocumentTax } from './use-document-calculations'
+import type { DocumentFormData, DocumentTax, DocumentStoreProp } from './use-document-calculations'
 
 interface Props {
   ability: string
-  store: Record<string, unknown>
+  store: DocumentStoreProp
   storeProp: string
   itemIndex: number
   index: number
@@ -89,7 +89,7 @@ interface Props {
   total: number
   totalTax: number
   discountedTotal: number
-  currency: Currency | Record<string, unknown>
+  currency: Currency | Record<string, unknown> | null
   updateItems: () => void
   discount?: number
 }
@@ -113,11 +113,11 @@ const modalStore = useModalStore()
 // In the v2 arch, we'll use a lighter approach
 const taxTypes = computed<TaxType[]>(() => {
   // Access taxTypeStore through the store's taxTypes or a global store
-  return (window as Record<string, unknown>).__taxTypes as TaxType[] ?? []
+  return (window.__taxTypes as TaxType[] | undefined) ?? []
 })
 
 const canAddTax = computed(() => {
-  return (window as Record<string, unknown>).__userHasAbility?.(props.ability) ?? false
+  return window.__userHasAbility?.(props.ability) ?? false
 })
 
 const selectedTax = ref<TaxType | null>(null)

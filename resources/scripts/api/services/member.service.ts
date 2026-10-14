@@ -6,6 +6,8 @@ import type { ApiResponse, PaginatedResponse, ListParams } from '@/scripts/types
 
 export interface MemberListParams extends ListParams {
   display_name?: string
+  email?: string
+  role?: string
 }
 
 export interface MemberListResponse {

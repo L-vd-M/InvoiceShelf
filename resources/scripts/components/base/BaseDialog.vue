@@ -197,7 +197,7 @@ function resolveDialog(resValue: boolean): void {
   if (resValue && !canConfirm.value) {
     return
   }
-  dialogStore.resolve(resValue)
+  dialogStore.resolve?.(resValue)
   dialogStore.closeDialog()
 }
 

@@ -254,7 +254,7 @@ async function setInvoiceFromUrl(): Promise<void> {
   try {
     const response = await invoiceService.get(Number(route.params.id))
     const invoice = response.data
-    paymentStore.currentPayment.customer_id = invoice.customer_id ?? (invoice.customer as Record<string, unknown>)?.id as number
+    paymentStore.currentPayment.customer_id = invoice.customer_id ?? (invoice.customer as unknown as { id?: number } | undefined)?.id as number
     paymentStore.currentPayment.invoice_id = invoice.id
   } catch {
     // Invoice not found

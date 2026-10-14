@@ -1,11 +1,10 @@
 export { adminModuleRoutes } from './routes'
 
 export { useModuleStore } from './store'
+export type { ModuleDetailResponse, ModuleDetailMeta } from '../../../api/services/module.service'
 export type {
   ModuleState,
   ModuleStore,
-  ModuleDetailResponse,
-  ModuleDetailMeta,
   InstallationStep,
 } from './store'
 

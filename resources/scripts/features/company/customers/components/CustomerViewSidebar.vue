@@ -20,7 +20,7 @@ interface CustomerListItem {
   name: string
   contact_name: string | null
   due_amount: number | null
-  currency: Record<string, unknown> | null
+  currency?: unknown
 }
 
 const customerStore = useCustomerStore()
@@ -79,8 +79,7 @@ async function loadCustomers(
   })
   isFetching.value = false
 
-  if (!customerList.value) customerList.value = []
-  customerList.value = [...customerList.value, ...response.data]
+  customerList.value = [...(customerList.value ?? []), ...response.data]
 
   currentPageNumber.value = pageNumber ?? 1
   lastPageNumber.value = response.meta.last_page

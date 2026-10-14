@@ -61,7 +61,7 @@ async function submitForm() {
 
   isSaving.value = true
 
-  const data = {
+  const data: { settings: Record<string, string | null> } = {
     settings: {
       ...expiryDateSettings,
     },

@@ -241,13 +241,10 @@ import { ABILITIES } from '../../../config/abilities'
 import type { Currency } from '../../../types/domain/currency'
 import type { TaxType } from '../../../types/domain/tax'
 import { calcTaxAmount } from './use-document-calculations'
-import type { DocumentFormData, DocumentTax, DocumentStore, DocumentItem } from './use-document-calculations'
+import type { DocumentFormData, DocumentTax, DocumentStoreProp, DocumentItem } from './use-document-calculations'
 
 interface Props {
-  store: DocumentStore & {
-    $patch: (fn: (state: Record<string, unknown>) => void) => void
-    [key: string]: unknown
-  }
+  store: DocumentStoreProp
   storeProp: string
   taxPopupType?: string
   currency?: Currency | Record<string, unknown> | string

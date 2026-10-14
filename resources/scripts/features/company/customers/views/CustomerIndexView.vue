@@ -143,7 +143,7 @@ async function fetchData({ page, sort }: FetchParams): Promise<FetchResult> {
     contact_name: filters.contact_name,
     phone: filters.phone,
     orderByField: sort.fieldName || 'created_at',
-    orderBy: sort.order || 'desc',
+    orderBy: (sort.order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
     page,
   }
 

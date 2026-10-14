@@ -965,7 +965,7 @@ async function fetchRecurringData({
     from_date: recurringFilters.from_date || undefined,
     to_date: recurringFilters.to_date || undefined,
     orderByField: sort.fieldName || 'created_at',
-    orderBy: sort.order || 'desc',
+    orderBy: (sort.order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
     page,
   }
 

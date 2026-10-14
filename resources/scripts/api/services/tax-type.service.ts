@@ -1,7 +1,7 @@
 import { client } from '../client'
 import { API } from '../endpoints'
 import type { TaxType } from '@/scripts/types/domain/tax'
-import type { ApiResponse, ListParams } from '@/scripts/types/api'
+import type { ApiResponse, ListParams, PaginatedResponse } from '@/scripts/types/api'
 
 export interface CreateTaxTypePayload {
   name: string
@@ -14,7 +14,7 @@ export interface CreateTaxTypePayload {
 }
 
 export const taxTypeService = {
-  async list(params?: ListParams): Promise<ApiResponse<TaxType[]>> {
+  async list(params?: ListParams): Promise<PaginatedResponse<TaxType>> {
     const { data } = await client.get(API.TAX_TYPES, { params })
     return data
   },

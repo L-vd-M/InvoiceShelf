@@ -1,7 +1,7 @@
 import { client } from '../client'
 import { API } from '../endpoints'
 import type { CustomField } from '@/scripts/types/domain/custom-field'
-import type { ApiResponse, ListParams } from '@/scripts/types/api'
+import type { ApiResponse, ListParams, PaginatedResponse } from '@/scripts/types/api'
 
 export interface CustomFieldListParams extends ListParams {
   model_type?: string
@@ -21,7 +21,7 @@ export interface CreateCustomFieldPayload {
 }
 
 export const customFieldService = {
-  async list(params?: CustomFieldListParams): Promise<ApiResponse<CustomField[]>> {
+  async list(params?: CustomFieldListParams): Promise<PaginatedResponse<CustomField>> {
     const { data } = await client.get(API.CUSTOM_FIELDS, { params })
     return data
   },

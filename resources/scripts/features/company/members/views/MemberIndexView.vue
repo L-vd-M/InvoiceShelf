@@ -135,7 +135,7 @@ async function fetchData({ page, sort }: FetchParams): Promise<FetchResult> {
     email: filters.email,
     role: filters.role || undefined,
     orderByField: sort.fieldName || 'created_at',
-    orderBy: sort.order || 'desc',
+    orderBy: (sort.order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
     page,
   }
 

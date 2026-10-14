@@ -3,13 +3,16 @@ import { ref, computed } from 'vue'
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl'
 
+// Modals hand back different payloads (a created record, a selected item, nothing), so the shape is per caller.
+export type RefreshCallback = (...args: any[]) => void
+
 export interface OpenModalPayload {
   componentName: string
   title: string
   id?: string | number
   content?: string
   data?: unknown
-  refreshData?: ((...args: unknown[]) => void) | null
+  refreshData?: RefreshCallback | null
   variant?: string
   size?: ModalSize
 }
@@ -23,7 +26,7 @@ export const useModalStore = defineStore('modal', () => {
   const id = ref<string | number>('')
   const size = ref<ModalSize>('md')
   const data = ref<unknown>(null)
-  const refreshData = ref<((...args: unknown[]) => void) | null>(null)
+  const refreshData = ref<RefreshCallback | null>(null)
   const variant = ref<string>('')
 
   // Getters

@@ -79,6 +79,8 @@ export interface RecurringInvoiceFormData {
   starts_at: string
   next_invoice_at: string
   next_invoice_date: string
+  formatted_starts_at?: string
+  formatted_next_invoice_at?: string
   frequency: string | null
   selectedFrequency: FrequencyOption | null
   status: string

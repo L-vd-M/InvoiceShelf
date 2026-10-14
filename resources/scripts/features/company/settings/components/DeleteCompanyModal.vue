@@ -52,7 +52,7 @@ async function submitDelete(): Promise<void> {
 
   isDeleting.value = true
   try {
-    await companyStore.deleteCompany(formData)
+    await companyStore.deleteCompany({ id: formData.id as number })
 
     closeModal()
 

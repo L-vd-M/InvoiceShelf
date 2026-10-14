@@ -22,6 +22,7 @@ export interface ReceiptUrl {
 
 export interface ReceiptMeta {
   id: number
+  uuid?: string
   name: string
   file_name: string
   mime_type: string

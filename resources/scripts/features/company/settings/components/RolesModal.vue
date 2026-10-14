@@ -71,19 +71,19 @@ async function setInitialData(): Promise<void> {
   const abilitiesRes = await roleService.getAbilities()
   if (abilitiesRes.abilities) {
     const grouped: AbilitiesList = {}
-    abilitiesRes.abilities.forEach((a: Record<string, unknown>) => {
+    abilitiesRes.abilities.forEach((a) => {
       // Extract model name from PHP class path (e.g., "App\Models\Customer" → "Customer")
-      const modelPath = (a.model as string) ?? ''
+      const modelPath = a.model ?? ''
       const modelName = modelPath
         ? modelPath.substring(modelPath.lastIndexOf('\\') + 1)
         : 'Common'
 
       if (!grouped[modelName]) grouped[modelName] = []
       grouped[modelName].push({
-        name: a.name as string,
-        ability: a.ability as string,
+        name: a.name,
+        ability: a.ability,
         disabled: false,
-        depends_on: (a.depends_on as string[]) ?? [],
+        depends_on: a.depends_on ?? [],
       } as AbilityItem)
     })
     abilitiesList.value = grouped
@@ -100,7 +100,7 @@ async function setInitialData(): Promise<void> {
       }
 
       // Match role's abilities with the full ability objects from abilitiesList
-      const roleAbilities = (response.data.abilities ?? []) as Array<Record<string, unknown>>
+      const roleAbilities = response.data.abilities ?? []
       roleAbilities.forEach((ra) => {
         Object.keys(abilitiesList.value).forEach((group) => {
           abilitiesList.value[group].forEach((_p) => {

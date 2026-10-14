@@ -5,8 +5,7 @@ import type {
   ApiResponse,
   ListParams,
   DateRangeParams,
-  DeletePayload,
-} from '@/scripts/types/api'
+  DeletePayload, PaginatedResponse } from '@/scripts/types/api'
 
 export interface ExpenseListParams extends ListParams, DateRangeParams {
   expense_category_id?: number
@@ -70,7 +69,7 @@ export const expenseService = {
   },
 
   // Expense Categories
-  async listCategories(params?: ListParams): Promise<ApiResponse<ExpenseCategory[]>> {
+  async listCategories(params?: ListParams): Promise<PaginatedResponse<ExpenseCategory>> {
     const { data } = await client.get(API.CATEGORIES, { params })
     return data
   },

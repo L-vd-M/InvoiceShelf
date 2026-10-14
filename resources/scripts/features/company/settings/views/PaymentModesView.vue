@@ -57,18 +57,18 @@ async function refreshTable(): Promise<void> {
 async function fetchData({ page, sort }: FetchParams): Promise<FetchResult> {
   const data = {
     orderByField: sort.fieldName || 'created_at',
-    orderBy: sort.order || 'desc',
+    orderBy: (sort.order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
     page,
   }
 
   const response = await paymentService.listMethods(data)
 
   return {
-    data: (response as Record<string, unknown>).data as unknown[],
+    data: response.data,
     pagination: {
-      totalPages: ((response as Record<string, unknown>).meta as Record<string, number>)?.last_page ?? 1,
+      totalPages: response.meta?.last_page ?? 1,
       currentPage: page,
-      totalCount: ((response as Record<string, unknown>).meta as Record<string, number>)?.total ?? 0,
+      totalCount: response.meta?.total ?? 0,
       limit: 5,
     },
   }

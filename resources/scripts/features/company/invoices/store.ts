@@ -270,7 +270,7 @@ export const useInvoiceStore = defineStore('invoice', {
 
     setCustomerAddresses(customer: Customer | null): void {
       if (!customer) return
-      const business = (customer as Record<string, unknown>).customer_business as
+      const business = (customer as unknown as Record<string, unknown>).customer_business as
         | Record<string, unknown>
         | undefined
 

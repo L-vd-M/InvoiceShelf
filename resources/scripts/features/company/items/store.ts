@@ -11,7 +11,7 @@ import { useNotificationStore } from '../../../stores/notification.store'
 import { handleApiError } from '../../../utils/error-handling'
 import type { Item, Unit } from '../../../types/domain/item'
 import type { Tax } from '../../../types/domain/tax'
-import type { ApiResponse, DeletePayload } from '../../../types/api'
+import type { ApiResponse, DeletePayload, ListParams } from '../../../types/api'
 
 export interface ItemForm {
   id?: number
@@ -244,7 +244,7 @@ export const useItemStore = defineStore('item', () => {
     }
   }
 
-  async function fetchItemUnits(params?: { limit?: string | number; search?: string }): Promise<{ data: { data: Unit[] } }> {
+  async function fetchItemUnits(params?: ListParams): Promise<{ data: { data: Unit[] } }> {
     try {
       const response = await itemService.listUnits(params)
       itemUnits.value = response.data as unknown as Unit[]

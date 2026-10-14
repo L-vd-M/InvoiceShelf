@@ -30,18 +30,18 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const rules = {
+const rules = computed(() => ({
   value: {
     required: helpers.withMessage(
       t('validation.required'),
       requiredIf(props.field.is_required)
     ),
   },
-}
+}))
 
 const v$ = useVuelidate(
   rules,
-  computed(() => props.field),
+  computed(() => props.field as { value: string }),
   { $scope: props.customFieldScope }
 )
 

@@ -11,8 +11,8 @@ import type {
   EstimateStatusPayload,
   EstimateTemplate,
 } from '../../../api/services/estimate.service'
-import type { Estimate, EstimateItem, DiscountType } from '../../../types/domain/estimate'
-import type { Invoice } from '../../../types/domain/invoice'
+import type { Estimate, EstimateItem } from '../../../types/domain/estimate'
+import type { Invoice, DiscountType } from '../../../types/domain/invoice'
 import type { Tax, TaxType } from '../../../types/domain/tax'
 import type { Currency } from '../../../types/domain/currency'
 import type { Customer } from '../../../types/domain/customer'
@@ -275,7 +275,7 @@ export const useEstimateStore = defineStore('estimate', {
 
     setCustomerAddresses(customer: Customer | null): void {
       if (!customer) return
-      const business = (customer as Record<string, unknown>).customer_business as
+      const business = (customer as unknown as Record<string, unknown>).customer_business as
         | Record<string, unknown>
         | undefined
 

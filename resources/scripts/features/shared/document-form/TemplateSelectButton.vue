@@ -22,10 +22,10 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useModalStore } from '@/scripts/stores/modal.store'
-import type { DocumentFormData } from './use-document-calculations'
+import type { DocumentFormData, DocumentStoreProp } from './use-document-calculations'
 
 interface Props {
-  store: Record<string, unknown> & {
+  store: DocumentStoreProp & {
     templates: Array<{ name: string; path?: string }>
   }
   storeProp: string

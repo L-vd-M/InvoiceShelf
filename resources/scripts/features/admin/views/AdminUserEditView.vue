@@ -101,6 +101,7 @@ import { useI18n } from 'vue-i18n'
 import { required, email, minLength, helpers } from '@vuelidate/validators'
 import { useVuelidate } from '@vuelidate/core'
 import { useAdminStore } from '../stores/admin.store'
+import type { UpdateUserData } from '../stores/admin.store'
 import type { User } from '../../../types/domain/user'
 
 interface UserFormData {
@@ -168,7 +169,7 @@ async function submitForm(): Promise<void> {
 
   isSaving.value = true
 
-  const data: Record<string, string> = {
+  const data: UpdateUserData = {
     name: formData.name,
     email: formData.email,
     phone: formData.phone,

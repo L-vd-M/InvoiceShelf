@@ -1,5 +1,5 @@
 <template>
-  <router-link v-bind="$attrs" :class="containerClass">
+  <router-link v-bind="$attrs as unknown as RouterLinkProps" :class="containerClass">
     <span v-if="hasIconSlot" class="mr-3">
       <slot name="icon" />
     </span>
@@ -9,6 +9,7 @@
 
 <script setup lang="ts">
 import { computed, useSlots } from 'vue'
+import type { RouterLinkProps } from 'vue-router'
 
 interface Props {
   title?: string

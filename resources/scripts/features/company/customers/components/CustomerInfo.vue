@@ -88,7 +88,7 @@
         v-for="(field, index) in customerCustomFields"
         :key="index"
         :content-loading="contentLoading"
-        :label="field.custom_field.label"
+        :label="field.custom_field?.label"
       >
         <p
           v-if="field.type === 'Switch'"

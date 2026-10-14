@@ -56,14 +56,14 @@ const roleColumns = computed<TableColumn[]>(() => [
 async function fetchData({ sort }: FetchParams): Promise<FetchResult> {
   const data = {
     orderByField: sort.fieldName || 'created_at',
-    orderBy: sort.order || 'desc',
+    orderBy: (sort.order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
     company_id: companyStore.selectedCompany?.id,
   }
 
   const response = await roleService.list(data)
 
   return {
-    data: (response as Record<string, unknown>).data as unknown[],
+    data: response.data,
   }
 }
 

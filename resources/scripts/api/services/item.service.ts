@@ -4,11 +4,12 @@ import type { Item, Unit } from '@/scripts/types/domain/item'
 import type {
   ApiResponse,
   ListParams,
-  DeletePayload,
-} from '@/scripts/types/api'
+  DeletePayload, PaginatedResponse } from '@/scripts/types/api'
 
 export interface ItemListParams extends ListParams {
   filter?: Record<string, unknown>
+  unit_id?: number | string
+  price?: number
 }
 
 export interface ItemListMeta {
@@ -63,7 +64,7 @@ export const itemService = {
   },
 
   // Units
-  async listUnits(params?: ListParams): Promise<ApiResponse<Unit[]>> {
+  async listUnits(params?: ListParams): Promise<PaginatedResponse<Unit>> {
     const { data } = await client.get(API.UNITS, { params })
     return data
   },

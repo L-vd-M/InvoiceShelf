@@ -61,7 +61,7 @@ async function updateGeneral(): Promise<void> {
     })
 
     const effectiveLanguage = (language === 'default' ? '' : language) || companyStore.selectedCompanySettings?.language || 'en'
-    await (window as Record<string, unknown>).loadLanguage?.(effectiveLanguage)
+    await window.loadLanguage?.(effectiveLanguage)
   } finally {
     isSaving.value = false
   }
