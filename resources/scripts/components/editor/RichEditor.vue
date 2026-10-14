@@ -202,7 +202,7 @@ watch(
   () => props.modelValue,
   (newValue: string) => {
     if (editor.value && newValue !== editor.value.getHTML()) {
-      editor.value.commands.setContent(newValue, false)
+      editor.value.commands.setContent(newValue, { emitUpdate: false })
     }
   }
 )

@@ -67,7 +67,7 @@ function addCustomerCompany(): void {
     placeholder="Search or select a company"
     :can-deselect="true"
     class="w-full"
-    @update:model-value="(value) => emit('update:modelValue', value as number | null)"
+    @update:model-value="(value: unknown) => emit('update:modelValue', value as number | null)"
   >
     <template #action>
       <BaseSelectAction

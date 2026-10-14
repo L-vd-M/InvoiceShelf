@@ -75,7 +75,7 @@ const columns: TableColumn[] = [
 async function fetchData({ page, sort }: FetchParams): Promise<FetchResult> {
   const data = {
     orderByField: sort.fieldName || 'created_at',
-    orderBy: sort.order || 'desc',
+    orderBy: (sort.order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
     page,
   }
 

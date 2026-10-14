@@ -148,7 +148,7 @@ const dueDateManuallyChanged = ref<boolean>(false)
 let isAutoUpdatingDueDate = false
 const expectedAutoDueDate = ref<string | null>(null)
 
-const invoiceNoteFieldList = ref<string[]>(['customer', 'company', 'invoice'])
+const invoiceNoteFieldList = ref<Array<'customer' | 'company' | 'invoice'>>(['customer', 'company', 'invoice'])
 
 const isLoadingContent = computed<boolean>(
   () => invoiceStore.isFetchingInvoice || invoiceStore.isFetchingInitialSettings,
@@ -338,7 +338,7 @@ async function submitForm(): Promise<void> {
 
   if (v$.value.$invalid) {
     console.log('Invoice form invalid. Errors:', JSON.stringify(
-      v$.value.$errors.map((e: { $property: string; $message: string }) => `${e.$property}: ${e.$message}`)
+      v$.value.$errors.map((e) => `${e.$property}: ${e.$message}`)
     ))
     return
   }

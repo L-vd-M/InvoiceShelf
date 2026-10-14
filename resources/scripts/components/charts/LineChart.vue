@@ -42,7 +42,7 @@ let myLineChart: Chart | null = null
 const graph = ref<HTMLCanvasElement | null>(null)
 const companyStore = useCompanyStore()
 const defaultCurrency = computed<CurrencyInfo>(() => {
-  return companyStore.selectedCompanyCurrency
+  return companyStore.selectedCompanyCurrency ?? {}
 })
 
 watchEffect(() => {
@@ -180,7 +180,7 @@ onMounted(() => {
             label: function (tooltipContext) {
               if (!utils) return ''
               return utils.formatMoney(
-                Math.round(tooltipContext.parsed.y * 100),
+                Math.round((tooltipContext.parsed.y ?? 0) * 100),
                 defaultCurrency.value
               )
             },

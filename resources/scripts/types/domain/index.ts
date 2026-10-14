@@ -68,7 +68,6 @@ export type { Note, NoteType } from './note'
 export type {
   Module,
   InstalledModule,
-  ModuleAuthor,
   ModuleVersion,
   ModuleLink,
   ModuleReview,

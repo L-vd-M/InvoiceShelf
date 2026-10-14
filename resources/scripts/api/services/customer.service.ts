@@ -9,6 +9,8 @@ import type {
 
 export interface CustomerListParams extends ListParams {
   display_name?: string
+  contact_name?: string
+  phone?: string
 }
 
 export interface CustomerListMeta {

@@ -61,18 +61,18 @@ const columns = computed<TableColumn[]>(() => [
 async function fetchData({ page, sort }: FetchParams): Promise<FetchResult> {
   const data = {
     orderByField: sort.fieldName || 'created_at',
-    orderBy: sort.order || 'desc',
+    orderBy: (sort.order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
     page,
   }
 
   const response = await itemService.listUnits(data)
 
   return {
-    data: (response as Record<string, unknown>).data as unknown[],
+    data: response.data,
     pagination: {
-      totalPages: ((response as Record<string, unknown>).meta as Record<string, number>).last_page,
+      totalPages: response.meta.last_page,
       currentPage: page,
-      totalCount: ((response as Record<string, unknown>).meta as Record<string, number>).total,
+      totalCount: response.meta.total,
       limit: 5,
     },
   }

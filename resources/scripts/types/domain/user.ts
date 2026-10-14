@@ -6,6 +6,7 @@ import type { Country } from './customer'
 export interface Address {
   id: number
   name: string | null
+  website?: string | null
   address_street_1: string | null
   address_street_2: string | null
   city: string | null

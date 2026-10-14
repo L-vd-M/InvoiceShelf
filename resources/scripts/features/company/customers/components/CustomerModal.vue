@@ -126,7 +126,7 @@ const rules = computed(() => ({
 
 const v$ = useVuelidate(
   rules,
-  computed(() => customerStore.currentCustomer)
+  computed(() => customerStore.currentCustomer as typeof customerStore.currentCustomer & { prefix: string })
 )
 
 const getCustomerPortalUrl = computed<string>(() => {

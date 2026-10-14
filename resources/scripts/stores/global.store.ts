@@ -123,7 +123,7 @@ export const useGlobalStore = defineStore('global', () => {
         (userLang && userLang !== 'default' ? userLang : '') ||
         (response.current_company_settings as Record<string, string>)?.language ||
         'en'
-      await (window as Record<string, unknown>).loadLanguage?.(uiLanguage)
+      await window.loadLanguage?.(uiLanguage)
 
       return response
     } catch (err: unknown) {

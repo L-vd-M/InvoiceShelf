@@ -149,12 +149,12 @@ setInitialFields()
 
 async function setInitialFields(): Promise<void> {
   const data = {
-    format: companyStore.selectedCompanySettings[`${props.type}_number_format`],
+    format: companyStore.selectedCompanySettings[`${props.type}_number_format`] ?? '',
   }
 
   isLoadingPlaceholders.value = true
 
-  const res = await globalStore.fetchPlaceholders(data as { key: string })
+  const res = await globalStore.fetchPlaceholders(data)
 
   res.placeholders.forEach((placeholder) => {
     const found = allFields.value.find((field) => field.name === placeholder.name)

@@ -1,6 +1,6 @@
 import { client } from '../client'
 import { API } from '../endpoints'
-import type { Role, Ability } from '@/scripts/types/domain/role'
+import type { Role, Ability, AbilityDefinition } from '@/scripts/types/domain/role'
 import type { ApiResponse, ListParams } from '@/scripts/types/api'
 
 export interface CreateRolePayload {
@@ -12,11 +12,15 @@ export interface CreateRolePayload {
 }
 
 export interface AbilitiesResponse {
-  abilities: Ability[]
+  abilities: AbilityDefinition[]
+}
+
+export interface RoleListParams extends ListParams {
+  company_id?: number
 }
 
 export const roleService = {
-  async list(params?: ListParams): Promise<ApiResponse<Role[]>> {
+  async list(params?: RoleListParams): Promise<ApiResponse<Role[]>> {
     const { data } = await client.get(API.ROLES, { params })
     return data
   },

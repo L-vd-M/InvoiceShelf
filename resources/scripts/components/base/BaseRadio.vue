@@ -43,11 +43,11 @@ import { computed } from 'vue'
 import { RadioGroup, RadioGroupLabel, RadioGroupOption } from '@headlessui/vue'
 
 interface Props {
-  id?: string | number
+  id?: string
   label?: string
   modelValue?: string | number
   value?: string | number
-  name?: string | number
+  name?: string
   checkedStateClass?: string
   unCheckedStateClass?: string
   optionGroupActiveStateClass?: string

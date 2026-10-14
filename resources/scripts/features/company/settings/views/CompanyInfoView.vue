@@ -45,14 +45,14 @@ const companyForm = reactive<CompanyFormData>({
   registration_number: companyStore.selectedCompany?.registration_number ?? null,
   email: companyStore.selectedCompany?.email ?? null,
   address: {
-    address_street_1: (companyStore.selectedCompany?.address as Record<string, string>)?.address_street_1 ?? '',
-    address_street_2: (companyStore.selectedCompany?.address as Record<string, string>)?.address_street_2 ?? '',
-    website: (companyStore.selectedCompany?.address as Record<string, string>)?.website ?? '',
-    country_id: (companyStore.selectedCompany?.address as Record<string, number | null>)?.country_id ?? null,
-    state: (companyStore.selectedCompany?.address as Record<string, string>)?.state ?? '',
-    city: (companyStore.selectedCompany?.address as Record<string, string>)?.city ?? '',
-    phone: (companyStore.selectedCompany?.address as Record<string, string>)?.phone ?? '',
-    zip: (companyStore.selectedCompany?.address as Record<string, string>)?.zip ?? '',
+    address_street_1: companyStore.selectedCompany?.address?.address_street_1 ?? '',
+    address_street_2: companyStore.selectedCompany?.address?.address_street_2 ?? '',
+    website: companyStore.selectedCompany?.address?.website ?? '',
+    country_id: companyStore.selectedCompany?.address?.country_id ?? null,
+    state: companyStore.selectedCompany?.address?.state ?? '',
+    city: companyStore.selectedCompany?.address?.city ?? '',
+    phone: companyStore.selectedCompany?.address?.phone ?? '',
+    zip: companyStore.selectedCompany?.address?.zip ?? '',
   },
 })
 

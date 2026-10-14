@@ -151,7 +151,7 @@ async function fetchData({ page, sort }: FetchParams): Promise<FetchResult> {
     unit_id: filters.unit_id !== null ? filters.unit_id : '',
     price: Math.round(Number(filters.price) * 100),
     orderByField: sort.fieldName || 'created_at',
-    orderBy: sort.order || 'desc',
+    orderBy: (sort.order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
     page,
   }
 

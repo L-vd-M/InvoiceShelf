@@ -1,5 +1,4 @@
 import { computed, type Ref } from 'vue'
-import type { Tax } from '../../../types/domain/tax'
 
 export interface DocumentItem {
   id: number | string
@@ -16,7 +15,7 @@ export interface DocumentItem {
   totalTax?: number
   totalSimpleTax?: number
   totalCompoundTax?: number
-  taxes?: Partial<Tax>[]
+  taxes?: DocumentTax[]
   item_id?: number | null
   unit_name?: string | null
   invoice_id?: number | null
@@ -44,11 +43,14 @@ export interface DocumentFormData {
   [key: string]: unknown
 }
 
+// Each document type has its own Pinia store; the form components only use the members they read by name.
+export type DocumentStoreProp = Record<string, any>
+
 export interface DocumentTax {
   id: number | string
   tax_type_id: number
   name: string
-  amount: number
+  amount: number | null
   percent: number | null
   calculation_type: string | null
   fixed_amount: number

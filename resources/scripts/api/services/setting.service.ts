@@ -24,7 +24,7 @@ export interface GlobalSettingsPayload {
 }
 
 export interface NumberPlaceholdersParams {
-  key: string
+  format: string
 }
 
 export interface NumberPlaceholder {

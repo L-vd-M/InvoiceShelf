@@ -26,12 +26,13 @@ interface CustomFieldItem {
   }
 }
 
-interface StoreWithProp {
-  [key: string]: {
-    customFields: CustomFieldItem[]
-    fields: CustomFieldItem[]
-  }
+interface CustomFieldsSlice {
+  customFields: CustomFieldItem[]
+  fields: CustomFieldItem[]
 }
+
+// Pinia stores carry many other members; only the slice named by storeProp is read.
+type StoreWithProp = Record<string, any>
 
 const props = withDefaults(
   defineProps<{
@@ -51,8 +52,8 @@ const props = withDefaults(
   }
 )
 
-const storeData = computed(() => {
-  const data = props.store[props.storeProp]
+const storeData = computed<CustomFieldsSlice | null>(() => {
+  const data: CustomFieldsSlice | undefined = props.store[props.storeProp]
 
   if (!data) {
     return null
@@ -72,11 +73,12 @@ const storeData = computed(() => {
 getInitialCustomFields()
 
 function mergeExistingValues(): void {
-  if (props.isEdit && storeData.value) {
-    storeData.value.fields.forEach((field) => {
-      const existingIndex = storeData.value?.customFields.findIndex(
+  const current = storeData.value
+  if (props.isEdit && current) {
+    current.fields.forEach((field) => {
+      const existingIndex = current.customFields.findIndex(
         (f) => f.id === field.custom_field_id
-      ) ?? -1
+      )
 
       if (existingIndex > -1) {
         let value: string | boolean | number | null = field.default_answer
@@ -88,7 +90,7 @@ function mergeExistingValues(): void {
           )
         }
 
-        storeData.value.customFields[existingIndex] = {
+        current.customFields[existingIndex] = {
           ...field,
           id: field.custom_field_id ?? field.id,
           value,
@@ -114,7 +116,7 @@ async function getInitialCustomFields(): Promise<void> {
     limit: 'all',
   })
 
-  const data = (res as Record<string, unknown>).data as CustomFieldItem[]
+  const data = res.data as unknown as CustomFieldItem[]
   data.forEach((d) => {
     d.value = d.default_answer
   })

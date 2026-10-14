@@ -79,9 +79,13 @@ const money = computed<string | number>({
 })
 
 const currencyBindings = computed<CurrencyBindings>(() => {
-  const currency: Currency = props.currency
+  const currency: Currency | null = props.currency
     ? props.currency
     : companyStore.selectedCompanyCurrency
+
+  if (!currency) {
+    return { decimal: '.', thousands: ',', prefix: '', precision: 2, masked: false }
+  }
 
   return {
     decimal: currency.decimal_separator,

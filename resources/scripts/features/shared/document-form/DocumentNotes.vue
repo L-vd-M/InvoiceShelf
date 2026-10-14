@@ -18,13 +18,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import NoteSelectPopup from './NoteSelectPopup.vue'
-import type { DocumentFormData } from './use-document-calculations'
+import type { DocumentFormData, DocumentStoreProp } from './use-document-calculations'
 import type { NoteType } from '../../../types/domain/note'
 
 interface Props {
-  store: Record<string, unknown>
+  store: DocumentStoreProp
   storeProp: string
-  fields: Record<string, unknown> | null
+  fields: Array<'customer' | 'company' | 'invoice' | 'estimate' | 'payment'> | null
   type: NoteType | string | null
   contentLoading?: boolean
 }

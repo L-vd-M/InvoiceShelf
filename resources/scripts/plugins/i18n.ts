@@ -116,7 +116,7 @@ export function createAppI18n(
     locale: 'en',
     fallbackLocale: 'en',
     globalInjection: true,
-    messages,
+    messages: messages as I18nOptions['messages'],
   }
 
   return createI18n(options) as AppI18n

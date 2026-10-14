@@ -106,11 +106,11 @@ import { useI18n } from 'vue-i18n'
 import { useModalStore } from '../../../stores/modal.store'
 import type { TaxType } from '../../../types/domain/tax'
 import type { Currency } from '../../../types/domain/currency'
-import type { DocumentFormData, DocumentTax } from './use-document-calculations'
+import type { DocumentFormData, DocumentTax, DocumentStoreProp } from './use-document-calculations'
 
 interface Props {
   type?: string | null
-  store: Record<string, unknown>
+  store: DocumentStoreProp
   storeProp: string
   taxTypes?: TaxType[]
   companyCurrency?: Currency | Record<string, unknown> | null

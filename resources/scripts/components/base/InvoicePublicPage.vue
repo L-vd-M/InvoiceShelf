@@ -8,12 +8,6 @@ import type { Currency } from '@/scripts/types/domain'
 import type { Company } from '@/scripts/types/domain'
 import type { Customer } from '@/scripts/types/domain'
 
-declare global {
-  interface Window {
-    customer_logo?: string | null
-  }
-}
-
 interface InvoicePublicData {
   invoice_number: string
   paid_status: string

@@ -155,7 +155,7 @@ interface ModelModifiers {
 
 interface Props {
   contentLoading?: boolean
-  type?: number | string
+  type?: string
   modelValue?: string | number
   loading?: boolean
   loadingPosition?: 'left' | 'right'

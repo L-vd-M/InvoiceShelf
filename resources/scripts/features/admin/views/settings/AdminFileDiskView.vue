@@ -173,7 +173,7 @@ const savePdfToDiskField = computed<boolean>({
 async function fetchData({ page, sort }: FetchParams): Promise<FetchResult> {
   const response = await diskService.list({
     orderByField: sort.fieldName || 'created_at',
-    orderBy: sort.order || 'desc',
+    orderBy: (sort.order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
     page,
   })
 

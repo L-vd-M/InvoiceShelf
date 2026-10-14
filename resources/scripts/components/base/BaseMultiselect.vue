@@ -314,8 +314,8 @@ interface Props {
   value?: unknown
   modelValue?: unknown
   options?: unknown[] | Record<string, unknown> | ((query: string) => Promise<unknown[]> | unknown[])
-  id?: string | number
-  name?: string | number
+  id?: string
+  name?: string
   disabled?: boolean
   label?: string
   labelValue?: string

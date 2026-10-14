@@ -16,5 +16,13 @@ export interface Role {
   title: string | null
   level: number | null
   formatted_created_at: string
+  scope?: number | null
   abilities: Ability[]
+}
+
+export interface AbilityDefinition {
+  name: string
+  ability: string
+  model?: string | null
+  depends_on?: string[] | null
 }

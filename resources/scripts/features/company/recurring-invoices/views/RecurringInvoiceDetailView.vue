@@ -112,7 +112,7 @@
               <div
                 class="mt-1 mb-2 text-xs not-italic font-medium leading-5 text-body"
               >
-                {{ invoice.invoice_number }}
+                {{ invoice.formatted_starts_at }}
               </div>
               <BaseRecurringInvoiceStatusBadge
                 :status="invoice.status"

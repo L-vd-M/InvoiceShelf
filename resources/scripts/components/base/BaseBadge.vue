@@ -9,7 +9,7 @@
       uppercase
       bg-success
     "
-    :style="{ backgroundColor: bgColor, color }"
+    :style="{ backgroundColor: bgColor ?? undefined, color: color ?? undefined }"
   >
     <slot />
   </span>

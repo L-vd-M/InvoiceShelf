@@ -1,7 +1,7 @@
 import { client } from '../client'
 import { API } from '../endpoints'
 import type { Note } from '@/scripts/types/domain/note'
-import type { ApiResponse, ListParams } from '@/scripts/types/api'
+import type { ApiResponse, ListParams, PaginatedResponse } from '@/scripts/types/api'
 
 export interface CreateNotePayload {
   type: string
@@ -11,7 +11,7 @@ export interface CreateNotePayload {
 }
 
 export const noteService = {
-  async list(params?: ListParams): Promise<ApiResponse<Note[]>> {
+  async list(params?: ListParams): Promise<PaginatedResponse<Note>> {
     const { data } = await client.get(API.NOTES, { params })
     return data
   },

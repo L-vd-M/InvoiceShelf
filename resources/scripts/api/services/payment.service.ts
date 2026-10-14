@@ -5,11 +5,12 @@ import type {
   ApiResponse,
   ListParams,
   NextNumberResponse,
-  DeletePayload,
-} from '@/scripts/types/api'
+  DeletePayload, PaginatedResponse } from '@/scripts/types/api'
 
 export interface PaymentListParams extends ListParams {
   customer_id?: number
+  payment_method_id?: number
+  payment_number?: string
   from_date?: string
   to_date?: string
 }
@@ -81,7 +82,7 @@ export const paymentService = {
   },
 
   // Payment Methods
-  async listMethods(params?: ListParams): Promise<ApiResponse<PaymentMethod[]>> {
+  async listMethods(params?: ListParams): Promise<PaginatedResponse<PaymentMethod>> {
     const { data } = await client.get(API.PAYMENT_METHODS, { params })
     return data
   },

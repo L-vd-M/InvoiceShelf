@@ -32,7 +32,7 @@ interface Props {
   label?: string
   description?: string
   modelValue?: boolean | unknown[]
-  id?: number | string
+  id?: string
   disabled?: boolean
   checkboxClass?: string
   setInitialValue?: boolean

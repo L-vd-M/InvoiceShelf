@@ -200,7 +200,7 @@ async function fetchData({ page, sort }: FetchParams): Promise<FetchResult> {
     payment_method_id: filters.payment_mode || undefined,
     payment_number: filters.payment_number || undefined,
     orderByField: sort.fieldName || 'created_at',
-    orderBy: sort.order || 'desc',
+    orderBy: (sort.order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
     page,
   }
 

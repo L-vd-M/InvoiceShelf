@@ -133,7 +133,7 @@ const estimateValidationScope = 'newEstimate'
 const isSaving = ref<boolean>(false)
 const isMarkAsDefault = ref<boolean>(false)
 
-const estimateNoteFieldList = ref<string[]>(['customer', 'company', 'estimate'])
+const estimateNoteFieldList = ref<Array<'customer' | 'company' | 'estimate'>>(['customer', 'company', 'estimate'])
 
 const isLoadingContent = computed<boolean>(
   () => estimateStore.isFetchingInitialSettings,
@@ -165,7 +165,7 @@ const rules = {
 
 const v$ = useVuelidate(
   rules,
-  computed(() => estimateStore.newEstimate),
+  computed(() => estimateStore.newEstimate as typeof estimateStore.newEstimate & { exchange_rate: number | null }),
   { $scope: estimateValidationScope },
 )
 
@@ -193,7 +193,7 @@ async function submitForm(): Promise<void> {
 
   if (v$.value.$invalid) {
     console.log('Estimate form invalid. Errors:', JSON.stringify(
-      v$.value.$errors.map((e: { $property: string; $message: string }) => `${e.$property}: ${e.$message}`)
+      v$.value.$errors.map((e) => `${e.$property}: ${e.$message}`)
     ))
     return
   }

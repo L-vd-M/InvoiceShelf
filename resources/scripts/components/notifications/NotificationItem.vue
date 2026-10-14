@@ -129,7 +129,7 @@
 import { onMounted, computed, ref } from 'vue'
 import { useNotificationStore } from '@/scripts/stores/notification.store'
 
-export type NotificationType = 'success' | 'error' | 'info'
+export type NotificationType = 'success' | 'error' | 'warning' | 'info'
 
 export interface Notification {
   id: string

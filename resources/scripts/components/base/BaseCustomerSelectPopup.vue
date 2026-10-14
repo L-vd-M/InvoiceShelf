@@ -67,8 +67,6 @@ const selectedCustomer = computed(() => {
 // Fetch initial customers on setup
 async function fetchInitialCustomers(): Promise<void> {
   await customerStore.fetchCustomers({
-    orderByField: '',
-    orderBy: '',
   })
 }
 
