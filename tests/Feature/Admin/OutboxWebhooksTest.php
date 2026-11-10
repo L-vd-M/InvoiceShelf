@@ -281,7 +281,7 @@ test('failures back off, then dead-letter after 72 hours, and retry puts the del
     expect($list->json('data'))->toHaveCount(1)->and($list->json('data.0.state'))->toBe('failed');
 
     $answer = 204;
-    postJson("api/v1/webhook-deliveries/{$delivery->id}/retry")->assertOk()->assertJsonPath('data.state', 'pending');
+    postJson("api/v1/webhook-deliveries/{$delivery->id}/retry")->assertOk()->assertJsonPath('state', 'pending');
     $service->deliver($delivery->refresh());
     expect($delivery->refresh()->state)->toBe('delivered');
 
@@ -365,20 +365,20 @@ test('delivery refuses a target that became private after it was saved', functio
 
 test('the secret is shown once on create and on rotate, never listed', function () {
     $created = postJson('api/v1/webhook-endpoints', ['url' => 'https://hooks.example.com/in', 'event_types' => ['document.issued']])->assertCreated();
-    $secret = $created->json('data.secret');
+    $secret = $created->json('secret');
     expect($secret)->toStartWith('whsec_');
 
     $list = getJson('api/v1/webhook-endpoints')->assertOk();
     expect(json_encode($list->json()))->not->toContain($secret)->and($list->json('data.0'))->not->toHaveKey('secret');
 
-    $id = $created->json('data.id');
-    $rotated = postJson("api/v1/webhook-endpoints/{$id}/rotate")->assertOk()->json('data.secret');
+    $id = $created->json('id');
+    $rotated = postJson("api/v1/webhook-endpoints/{$id}/rotate")->assertOk()->json('secret');
     expect($rotated)->not->toBe($secret)->and(WebhookEndpoint::find($id)->secret)->toBe($rotated);
 
     // stored encrypted
     expect(DB::table('webhook_endpoints')->where('id', $id)->value('secret'))->not->toBe($rotated);
 
-    patchJson("api/v1/webhook-endpoints/{$id}", ['enabled' => false])->assertOk()->assertJsonPath('data.enabled', false);
+    patchJson("api/v1/webhook-endpoints/{$id}", ['enabled' => false])->assertOk()->assertJsonPath('enabled', false);
     postJson('api/v1/webhook-endpoints', ['url' => 'https://hooks.example.com/in', 'event_types' => ['bogus.type']])->assertStatus(422);
     deleteJson("api/v1/webhook-endpoints/{$id}")->assertOk();
     expect(WebhookEndpoint::count())->toBe(0);

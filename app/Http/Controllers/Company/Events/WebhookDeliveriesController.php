@@ -21,10 +21,11 @@ class WebhookDeliveriesController extends Controller
             $query->where('state', $state === 'failed' ? WebhookDelivery::DEAD : $state);
         }
 
-        $page = $query->paginate(min((int) $request->query('limit', 25), 200));
+        $page = $query->paginate(min((int) $request->query('limit', 25), 200), ['*'], 'page', (int) $request->query('cursor', $request->query('page', 1)));
 
         return response()->json([
             'data' => $page->getCollection()->map(fn (WebhookDelivery $d) => $this->present($d))->values(),
+            'next_cursor' => $page->hasMorePages() ? (string) ($page->currentPage() + 1) : null,
             'meta' => ['current_page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'total' => $page->total()],
         ]);
     }
@@ -43,16 +44,16 @@ class WebhookDeliveriesController extends Controller
             'next_attempt_at' => now(),
         ]);
 
-        return response()->json(['data' => $this->present($webhookDelivery->refresh()->load('event:id,event_id,type'))]);
+        return response()->json($this->present($webhookDelivery->refresh()->load('event:id,event_id,type')));
     }
 
     private function present(WebhookDelivery $delivery): array
     {
         return [
-            'id' => $delivery->id,
+            'id' => (string) $delivery->id,
             'event_id' => $delivery->event?->event_id,
             'type' => $delivery->event?->type,
-            'webhook_endpoint_id' => $delivery->webhook_endpoint_id,
+            'webhook_endpoint_id' => (string) $delivery->webhook_endpoint_id,
             'state' => $delivery->state === WebhookDelivery::DEAD ? 'failed' : $delivery->state,
             'attempts' => $delivery->attempts,
             'last_status' => $delivery->last_status,
