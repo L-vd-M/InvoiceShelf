@@ -25,9 +25,9 @@ class CreditNoteService
      * everything still creditable. Number, record, invoice balance and credited total change in
      * one transaction.
      */
-    public function create(Invoice $invoice, array $data, ?array $lines, ?int $userId = null): CreditNote
+    public function create(Invoice $invoice, array $data, ?array $lines, ?int $userId = null, ?int $amount = null): CreditNote
     {
-        return DB::transaction(function () use ($invoice, $data, $lines, $userId) {
+        return DB::transaction(function () use ($invoice, $data, $lines, $userId, $amount) {
             // lock the invoice row so two credit notes cannot both spend the same balance
             $invoice = Invoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
 
@@ -35,12 +35,31 @@ class CreditNoteService
                 throw ValidationException::withMessages(['invoice' => ['A draft invoice is edited or deleted, not credited.']]);
             }
 
-            [$lineRows, $subTotal] = $this->priceLines($invoice, $lines);
+            if ($amount !== null) {
+                // credit by amount (integration API): one line, exact total; line quantities are not consumed
+                $subTotal = $invoice->total > 0 ? (int) round($amount * $invoice->sub_total / $invoice->total) : $amount;
+                $lineRows = [[
+                    'invoice_item_id' => null,
+                    'name' => 'Credit',
+                    'description' => $data['reason'] ?? null,
+                    'unit_name' => null,
+                    'quantity' => 1,
+                    'price' => $subTotal,
+                    'discount_val' => 0,
+                    'tax' => $amount - $subTotal,
+                    'total' => $subTotal,
+                ]];
+                $total = $amount;
+                $tax = $amount - $subTotal;
+                $discount = 0;
+            } else {
+                [$lineRows, $subTotal] = $this->priceLines($invoice, $lines);
 
-            $ratio = $invoice->sub_total > 0 ? $subTotal / $invoice->sub_total : 0;
-            $total = (int) round($invoice->total * $ratio);
-            $tax = (int) round($invoice->tax * $ratio);
-            $discount = (int) round(($invoice->discount_val ?? 0) * $ratio);
+                $ratio = $invoice->sub_total > 0 ? $subTotal / $invoice->sub_total : 0;
+                $total = (int) round($invoice->total * $ratio);
+                $tax = (int) round($invoice->tax * $ratio);
+                $discount = (int) round(($invoice->discount_val ?? 0) * $ratio);
+            }
 
             if ($total <= 0) {
                 throw ValidationException::withMessages(['items' => ['Nothing left to credit on this invoice.']]);

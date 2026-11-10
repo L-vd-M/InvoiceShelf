@@ -33,7 +33,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -213,21 +212,14 @@ class ContractDocumentsController extends Controller
             return Problem::response(422, 'validation_failed', 'Credit exceeds the invoice', "At most {$remaining} can still be credited.", ['errors' => ['total_minor' => ['exceeds remaining']]]);
         }
 
-        $lines = $amount === $remaining ? null : $this->proportionalLines($invoice, $amount);
+        // a full credit of an untouched invoice keeps the invoice lines; anything else is credited by amount
+        $byAmount = (int) $invoice->credited_total > 0 || $amount !== (int) $invoice->total;
 
         try {
-            $creditNote = DB::transaction(function () use ($request, $invoice, $lines, $amount) {
-                $note = $this->creditNotes->create($invoice, [
-                    'reason_code' => 'other',
-                    'reason' => $request->input('reason') ?: 'Credit note issued through the API',
-                ], $lines);
-
-                if ((int) $note->total !== $amount) {
-                    throw ValidationException::withMessages(['total_minor' => ["{$amount} cannot be split exactly across the invoice lines; send an amount that matches whole line quantities."]]);
-                }
-
-                return $note;
-            });
+            $creditNote = $this->creditNotes->create($invoice, [
+                'reason_code' => 'other',
+                'reason' => $request->input('reason') ?: 'Credit note issued through the API',
+            ], null, null, $byAmount ? $amount : null);
         } catch (ValidationException $e) {
             return $this->invalid($e->validator);
         }
@@ -440,23 +432,6 @@ class ContractDocumentsController extends Controller
     {
         return Estimate::where('company_id', $company)->where('estimate_number', $number)->exists()
             || Invoice::where('company_id', $company)->where(fn ($q) => $q->where('invoice_number', $number)->orWhere('supplied_number', $number))->exists();
-    }
-
-    /** Spread an amount over the invoice lines in proportion to what each still has to give. */
-    private function proportionalLines(Invoice $invoice, int $amount): array
-    {
-        $creditable = $this->creditNotes->creditable($invoice);
-        $remainingTotal = array_sum(array_map(fn ($i) => $i['remaining_quantity'] * ($i['quantity'] > 0 ? $i['total'] / $i['quantity'] : 0), $creditable['items']));
-        $ratio = $remainingTotal > 0 ? $amount / $remainingTotal : 0;
-
-        $lines = [];
-        foreach ($creditable['items'] as $item) {
-            if ($item['remaining_quantity'] > 0) {
-                $lines[$item['invoice_item_id']] = round($item['remaining_quantity'] * $ratio, 6);
-            }
-        }
-
-        return $lines;
     }
 
     private function respond(Model $document, int $status = 200): JsonResponse

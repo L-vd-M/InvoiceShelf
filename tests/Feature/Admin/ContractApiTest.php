@@ -130,11 +130,15 @@ test('credit notes: partial then the rest voids the invoice; issue is idempotent
     $this->postJson('api/v1/credit-notes/'.$partial->json('id').'/issue', [], ['If-Match' => $partial->headers->get('ETag')])->assertOk()
         ->assertJsonPath('number', $partial->json('number'));
 
-    $rest = $this->postJson("api/v1/invoices/{$id}/credit-notes", [])->assertCreated()->assertJsonPath('total', ($this->money)(100000));
+    $odd = $this->postJson("api/v1/invoices/{$id}/credit-notes", ['total_minor' => 33333])->assertCreated()->assertJsonPath('total', ($this->money)(33333));
+    expect($odd->json('number'))->toStartWith('CN-');
+
+    $rest = $this->postJson("api/v1/invoices/{$id}/credit-notes", [])->assertCreated()->assertJsonPath('total', ($this->money)(66667));
     expect(($this->events)('document.voided'))->toHaveCount(1)
-        ->and(($this->events)('document.issued'))->toHaveCount(3);
+        ->and(($this->events)('document.issued'))->toHaveCount(4);
     $this->getJson("api/v1/invoices/{$id}")->assertJsonPath('status', 'voided');
-    $this->getJson('api/v1/credit-notes')->assertOk()->assertJsonCount(2, 'data');
+    $this->getJson('api/v1/credit-notes')->assertOk()->assertJsonCount(3, 'data');
+    expect(Invoice::find($id)->credited_total)->toBe(150000);
 });
 
 test('payments are idempotent on external_ref and refuse a different amount or too much', function () {
