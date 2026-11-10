@@ -14,6 +14,17 @@ use App\Models\TaxType;
 
 return [
     /*
+    * Tenant name carried in every outbox event envelope.
+    */
+    'event_tenant' => env('EVENT_TENANT', 'tarcza'),
+
+    /*
+    * Webhook targets are refused when they resolve to private or reserved addresses.
+    * Hosts listed here (comma separated in WEBHOOK_ALLOWED_HOSTS) are exempt, for consumers on the LAN.
+    */
+    'webhook_allowed_hosts' => array_values(array_filter(array_map('trim', explode(',', (string) env('WEBHOOK_ALLOWED_HOSTS', ''))))),
+
+    /*
     * Minimum php version.
     */
     'min_php_version' => '8.4.0',
