@@ -86,7 +86,7 @@ test('audit log lists deletions with reason, revisions and token creations, filt
 test('export: json with totals, hashes and a verifiable signed manifest; csv with digest', function () {
     $id = ($this->issued)();
     postJson("api/v1/invoices/{$id}/credit-notes", ['reason_code' => 'billing_error'])->assertCreated();
-    $today = now()->addYear()->format('Y-m-d');
+    $today = '2100-01-01';
 
     $json = getJson("api/v1/exports/documents?from=1900-01-01&to={$today}")->assertOk();
     expect($json->json('count'))->toBe(2)->and($json->json('documents.0.pdf_sha256'))->toMatch('/^[0-9a-f]{64}$/');
