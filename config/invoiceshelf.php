@@ -19,6 +19,13 @@ return [
     'event_tenant' => env('EVENT_TENANT', 'tarcza'),
 
     /*
+    * VAT status carried in accounting events (contracts 1.3, tenant_vat). TARCZA is not a vendor: false.
+    * A document that carries tax is treated as issued by a registered tenant.
+    */
+    'tenant_vat_registered' => (bool) env('TENANT_VAT_REGISTERED', false),
+    'tenant_vat_effective_from' => env('TENANT_VAT_EFFECTIVE_FROM'),
+
+    /*
     * Key for the signed export manifest (GET /exports/documents). Defaults to a key derived from APP_KEY.
     */
     'export_signing_key' => env('EXPORT_SIGNING_KEY'),

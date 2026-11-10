@@ -113,6 +113,9 @@ class ContractDocumentsController extends Controller
             'lines.*.description' => ['nullable', 'string', 'max:2000'],
             'lines.*.quantity' => ['required', 'numeric', 'gt:0'],
             'lines.*.unit_price_minor' => ['required', 'integer', 'min:0'],
+            'lines.*.kind' => ['nullable', 'in:goods,service,subscription,fee,discount,shipping,other'],
+            'lines.*.stream' => ['nullable', 'string', 'max:60'],
+            'lines.*.part_ref' => ['nullable', 'string', 'max:120'],
             'customer' => ['sometimes', 'array'],
             'customer.name' => ['required_with:customer', 'string', 'max:250'],
             'customer.email' => ['nullable', 'email', 'max:250'],
@@ -304,6 +307,9 @@ class ContractDocumentsController extends Controller
     {
         $number = $supplied ?? (new SerialNumberService)->setModel(new Estimate)->setCompany($company)->setCustomer($customer->id)->getNextNumber();
 
+        // accounting hints are invoice-line columns; quotes carry none
+        $items = array_map(fn (array $item) => array_diff_key($item, array_flip(['kind', 'stream', 'part_ref'])), $items);
+
         $payload = $this->commonPayload($request, $customer, $items, 'estimate') + [
             'estimate_date' => now()->format('Y-m-d'),
             'expiry_date' => $input['expiry_date'] ?? now()->addDays(14)->format('Y-m-d'),
@@ -395,6 +401,9 @@ class ContractDocumentsController extends Controller
             'total' => (int) round($line['quantity'] * $line['unit_price_minor']),
             'unit_name' => null,
             'taxes' => [],
+            'kind' => $line['kind'] ?? null,
+            'stream' => $line['stream'] ?? null,
+            'part_ref' => $line['part_ref'] ?? null,
         ], $lines);
     }
 
