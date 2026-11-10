@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Customer\EstimateResource;
 use App\Models\Company;
 use App\Models\Estimate;
+use App\Services\Document\EstimateService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -29,7 +30,11 @@ class AcceptEstimateController extends Controller
             return response()->json(['error' => 'estimate_not_found'], 404);
         }
 
-        $estimate->update($request->only('status'));
+        $status = $request->validate(['status' => ['required', 'in:'.Estimate::STATUS_ACCEPTED.','.Estimate::STATUS_REJECTED]])['status'];
+
+        // through the service so the quote.accepted / deal.lost events and the revision are written
+        app(EstimateService::class)->changeStatus($estimate, $status);
+        $estimate->refresh();
 
         return new EstimateResource($estimate);
     }

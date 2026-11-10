@@ -9,9 +9,12 @@ use App\Http\Requests\SendInvoiceRequest;
 use App\Http\Resources\EstimateResource;
 use App\Http\Resources\InvoiceResource;
 use App\Jobs\GenerateInvoicePdfJob;
+use App\Models\DocumentRevision;
 use App\Models\Estimate;
 use App\Models\Invoice;
 use App\Services\Document\InvoiceService;
+use App\Services\Document\RevisionService;
+use App\Support\Problem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown;
@@ -148,6 +151,32 @@ class InvoicesController extends Controller
         GenerateInvoicePdfJob::dispatch($invoice, true);
 
         return new InvoiceResource($invoice->load('estimate'));
+    }
+
+    /**
+     * The PDF exactly as it was rendered when the invoice was issued, with its SHA-256 in `Digest`
+     * (RFC 3230, base64). A draft has no final PDF.
+     */
+    public function pdf(Request $request, Invoice $invoice)
+    {
+        $this->authorize('view', $invoice);
+
+        if (! $invoice->isIssued()) {
+            return Problem::response(409, 'document_immutable', 'Draft has no final PDF', 'Issue the invoice first.');
+        }
+
+        $revision = DocumentRevision::where('document_type', 'invoice')->where('document_id', $invoice->id)
+            ->whereNotNull('pdf_sha256')->orderByDesc('revision_no')->first();
+        $bytes = $revision ? RevisionService::storedPdf($revision) : null;
+
+        // invoices issued before PDFs were stored: render now (the hash is then not stable across renders)
+        $bytes ??= $invoice->getPDFData()->output();
+
+        return response($bytes, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$invoice->invoice_number.'.pdf"',
+            'Digest' => 'sha-256='.base64_encode(hash('sha256', $bytes, true)),
+        ]);
     }
 
     public function clone(Request $request, Invoice $invoice)

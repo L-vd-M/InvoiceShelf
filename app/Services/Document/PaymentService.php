@@ -11,6 +11,7 @@ use App\Models\DocumentDeletion;
 use App\Models\ExchangeRateLog;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Services\Events\EventData;
 use App\Services\Events\OutboxService;
 use App\Services\Mail\CompanyMailConfigService;
 use Carbon\Carbon;
@@ -243,18 +244,8 @@ class PaymentService
 
     private function recordEvent(Payment $payment): void
     {
-        $payment->loadMissing('invoice', 'currency');
+        $payment->loadMissing('invoice.currency', 'currency');
 
-        OutboxService::record('payment.recorded', 'payment', $payment, $payment->payment_number, [
-            'number' => $payment->payment_number,
-            'invoice_id' => $payment->invoice_id,
-            'invoice_number' => $payment->invoice?->invoice_number,
-            'customer_id' => $payment->customer_id,
-            'amount' => (int) $payment->amount,
-            'currency' => $payment->currency?->code,
-            'payment_date' => $payment->payment_date ? Carbon::parse($payment->payment_date)->format('Y-m-d') : null,
-            'payment_method_id' => $payment->payment_method_id,
-            'transaction_id' => $payment->transaction_id,
-        ]);
+        OutboxService::record('payment.recorded', 'payment', $payment, $payment->payment_number, EventData::paymentRecorded($payment));
     }
 }

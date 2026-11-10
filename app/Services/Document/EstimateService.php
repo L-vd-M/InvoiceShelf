@@ -47,15 +47,21 @@ class EstimateService
 
         $estimate = Estimate::create($data);
         $estimate->unique_hash = Hashids::connection(Estimate::class)->encode($estimate->id);
-        $serial = (new SerialNumberService)
-            ->setModel($estimate)
-            ->setCompany($estimate->company_id)
-            ->setCustomer($estimate->customer_id)
-            ->reserveNextNumbers();
 
-        $estimate->sequence_number = $serial->nextSequenceNumber;
-        $estimate->customer_sequence_number = $serial->nextCustomerSequenceNumber;
-        $estimate->save();
+        // shadow mode (supplied_number): the legacy system issued the number, the series counter is not consumed
+        if ($request->filled('supplied_number')) {
+            $estimate->save();
+        } else {
+            $serial = (new SerialNumberService)
+                ->setModel($estimate)
+                ->setCompany($estimate->company_id)
+                ->setCustomer($estimate->customer_id)
+                ->reserveNextNumbers();
+
+            $estimate->sequence_number = $serial->nextSequenceNumber;
+            $estimate->customer_sequence_number = $serial->nextCustomerSequenceNumber;
+            $estimate->save();
+        }
 
         $companyCurrency = CompanySetting::getSetting('currency', $request->header('company'));
 
@@ -437,6 +443,9 @@ class EstimateService
             if ($status === Estimate::STATUS_ACCEPTED) {
                 $estimate->recordAccepted();
             } elseif ($reason = self::STATUS_REASONS[$status] ?? null) {
+                if ($status === Estimate::STATUS_REJECTED) {
+                    $estimate->recordRejected();
+                }
                 RevisionService::record($estimate, $reason);
             }
         });

@@ -195,7 +195,7 @@ Route::prefix('/v1')->group(function () {
         Route::post('stop-impersonating', [UsersController::class, 'stopImpersonating']);
     });
 
-    Route::middleware(['auth:sanctum', 'token-scope', 'company', 'idempotent', 'conditional'])->group(function () {
+    Route::middleware(['auth:sanctum', 'token-scope', 'company', 'idempotent', 'conditional', 'contract'])->group(function () {
         Route::middleware(['bouncer'])->group(function () {
 
             // Bootstrap
@@ -299,6 +299,8 @@ Route::prefix('/v1')->group(function () {
 
             Route::post('/invoices/{invoice}/issue', [InvoicesController::class, 'issue']);
 
+            Route::get('/invoices/{invoice}/pdf', [InvoicesController::class, 'pdf']);
+
             Route::post('/invoices/{invoice}/clone', [InvoicesController::class, 'clone']);
 
             Route::post('/invoices/{invoice}/convert-to-estimate', [InvoicesController::class, 'convertToEstimate']);
@@ -335,6 +337,8 @@ Route::prefix('/v1')->group(function () {
             Route::get('/credit-notes/{creditNote}', [CreditNotesController::class, 'show']);
 
             Route::get('/credit-notes/{creditNote}/pdf', [CreditNotesController::class, 'pdf']);
+
+            Route::post('/credit-notes/{creditNote}/issue', [CreditNotesController::class, 'issue']);
 
             // Integration tokens (owner, full-access session only)
             // -------------------------------------------------
@@ -385,6 +389,8 @@ Route::prefix('/v1')->group(function () {
             Route::post('/estimates/{estimate}/status', [EstimatesController::class, 'changeStatus']);
 
             Route::post('/estimates/{estimate}/convert-to-invoice', [EstimatesController::class, 'convertToInvoice']);
+
+            Route::post('/estimates/{estimate}/accept', [EstimatesController::class, 'accept']);
 
             Route::post('/estimates/{estimate}/issue-invoice', [EstimatesController::class, 'issueInvoice']);
 

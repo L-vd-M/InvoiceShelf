@@ -14,6 +14,7 @@ use App\Models\DocumentDeletion;
 use App\Models\Estimate;
 use App\Models\ExchangeRateLog;
 use App\Models\Invoice;
+use App\Services\Events\EventData;
 use App\Services\Events\OutboxService;
 use App\Services\Mail\CompanyMailConfigService;
 use App\Support\Pdf\PdfTemplateUtils;
@@ -97,7 +98,10 @@ class InvoiceService
                 return $locked;
             }
 
-            if ($locked->sequence_number === null) {
+            if ($locked->supplied_number !== null) {
+                // shadow mode: the legacy system already issued this number; the series counter is not consumed
+                $locked->invoice_number = $locked->supplied_number;
+            } elseif ($locked->sequence_number === null) {
                 $serial = (new SerialNumberService)
                     ->setModel($locked)
                     ->setCompany($locked->company_id)
@@ -117,21 +121,12 @@ class InvoiceService
             $locked->issued_at = now();
             $locked->save();
 
-            OutboxService::record('document.issued', 'invoice', $locked, $locked->invoice_number, [
-                'document_type' => 'invoice',
-                'number' => $locked->invoice_number,
-                'customer_id' => $locked->customer_id,
-                'issued_at' => $locked->issued_at->utc()->format('Y-m-d\TH:i:s\Z'),
-                'invoice_date' => $locked->invoice_date ? Carbon::parse($locked->invoice_date)->format('Y-m-d') : null,
-                'due_date' => $locked->due_date ? Carbon::parse($locked->due_date)->format('Y-m-d') : null,
-                'sub_total' => (int) $locked->sub_total,
-                'tax' => (int) $locked->tax,
-                'total' => (int) $locked->total,
-                'currency' => $locked->currency?->code,
-                'estimate_id' => $locked->estimate_id ?? null,
-            ]);
+            $locked->load('customer', 'currency');
+            $pdf = $locked->getPDFData()->output();
 
-            RevisionService::record($locked, 'issued', ['pdf' => $locked->fresh()->getPDFData()->output()]);
+            OutboxService::record('document.issued', 'invoice', $locked, $locked->invoice_number, EventData::invoiceIssued($locked, hash('sha256', $pdf)));
+
+            RevisionService::record($locked, 'issued', ['pdf' => $pdf]);
 
             return $locked;
         });

@@ -9,6 +9,7 @@ use App\Http\Middleware\CustomerPortalMiddleware;
 use App\Http\Middleware\CustomerRedirectIfAuthenticated;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\ConditionalRequests;
+use App\Http\Middleware\ContractRepresentation;
 use App\Http\Middleware\EnforceTokenScope;
 use App\Http\Middleware\Idempotency;
 use App\Http\Middleware\EnsureNotContainerized;
@@ -87,6 +88,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'guest' => RedirectIfAuthenticated::class,
             'install' => InstallationMiddleware::class,
             'conditional' => ConditionalRequests::class,
+            'contract' => ContractRepresentation::class,
             'idempotent' => Idempotency::class,
             'token-scope' => EnforceTokenScope::class,
             'not-containerized' => EnsureNotContainerized::class,
@@ -108,5 +110,25 @@ return Application::configure(basePath: dirname(__DIR__))
 
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // API clients that authenticate with a bearer token get RFC 9457 problem+json with a stable `code`
+        // (spec 08 section 1); `message` and `errors` stay for clients that read the older shape.
+        $bearerApi = fn (Illuminate\Http\Request $request) => $request->is('api/*') && $request->bearerToken() !== null;
+
+        $exceptions->render(function (Illuminate\Validation\ValidationException $e, Illuminate\Http\Request $request) use ($bearerApi) {
+            if ($bearerApi($request)) {
+                return App\Support\Problem::response(422, 'validation_failed', 'Validation failed', implode(' ', $e->validator->errors()->all()), ['errors' => $e->errors(), 'message' => $e->getMessage()]);
+            }
+        });
+
+        $exceptions->render(function (Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, Illuminate\Http\Request $request) use ($bearerApi) {
+            if ($bearerApi($request)) {
+                return App\Support\Problem::response(404, 'not_found', 'Not found', null, ['message' => 'Not found']);
+            }
+        });
+
+        $exceptions->render(function (Illuminate\Auth\AuthenticationException $e, Illuminate\Http\Request $request) use ($bearerApi) {
+            if ($bearerApi($request)) {
+                return App\Support\Problem::response(401, 'unauthorized', 'Unauthenticated', null, ['message' => 'Unauthenticated.']);
+            }
+        });
     })->create();

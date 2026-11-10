@@ -10,6 +10,7 @@ use App\Models\CreditNote;
 use App\Models\CreditNoteItem;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Services\Events\EventData;
 use App\Services\Events\OutboxService;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
@@ -81,7 +82,8 @@ class CreditNoteService
             }
 
             RevisionService::record($creditNote, 'created');
-            RevisionService::record($creditNote, 'issued', ['pdf' => $this->getPdfData($creditNote)->output()]);
+            $pdf = $this->getPdfData($creditNote)->output();
+            RevisionService::record($creditNote, 'issued', ['pdf' => $pdf]);
 
             if ($applied > 0) {
                 $before = $invoice->status;
@@ -95,28 +97,11 @@ class CreditNoteService
             $invoice->credited_total += $total;
             $invoice->save();
 
-            $currency = $invoice->currency?->code;
-            OutboxService::record('document.issued', 'credit_note', $creditNote, $creditNote->credit_note_number, [
-                'document_type' => 'credit_note',
-                'number' => $creditNote->credit_note_number,
-                'invoice_number' => $invoice->invoice_number,
-                'customer_id' => $creditNote->customer_id,
-                'reason_code' => $creditNote->reason_code,
-                'sub_total' => (int) $creditNote->sub_total,
-                'tax' => (int) $creditNote->tax,
-                'total' => (int) $creditNote->total,
-                'currency' => $currency,
-            ]);
+            $invoice->loadMissing('customer', 'currency');
+            OutboxService::record('document.issued', 'credit_note', $creditNote, $creditNote->credit_note_number, EventData::creditNoteIssued($creditNote, $invoice, hash('sha256', $pdf)));
 
             if ($invoice->credited_total >= $invoice->total) {
-                OutboxService::record('document.voided', 'invoice', $invoice, $invoice->invoice_number, [
-                    'document_type' => 'invoice',
-                    'number' => $invoice->invoice_number,
-                    'credit_note_number' => $creditNote->credit_note_number,
-                    'total' => (int) $invoice->total,
-                    'credited_total' => (int) $invoice->credited_total,
-                    'currency' => $currency,
-                ]);
+                OutboxService::record('document.voided', 'invoice', $invoice, $invoice->invoice_number, EventData::invoiceVoided($invoice, $creditNote));
             }
 
             RevisionService::record($invoice, $invoice->credited_total >= $invoice->total ? 'voided' : 'credited', [

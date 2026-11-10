@@ -21,6 +21,7 @@ class EnforceTokenScope
         'documents:read',
         'documents:write',
         'documents:issue',
+        'documents:shadow',
         'events:read',
         'webhooks:manage',
         'analytics:read',
@@ -29,7 +30,7 @@ class EnforceTokenScope
     private const DOCUMENT_PATHS = [
         'invoices', 'estimates', 'credit-notes', 'payments', 'customers', 'items', 'units',
         'tax-types', 'payment-methods', 'next-number', 'number-placeholders', 'current-company',
-        'invoice-templates', 'estimate-templates', 'exports', 'audit-log', 'auth',
+        'invoice-templates', 'estimate-templates', 'exports', 'audit-log', 'revisions', 'auth',
     ];
 
     public function handle(Request $request, Closure $next): Response
