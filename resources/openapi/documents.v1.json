@@ -1519,6 +1519,24 @@
                 "unit_price_minor": {
                   "type": "integer",
                   "minimum": 0
+                },
+                "kind": {
+                  "enum": [
+                    "goods",
+                    "service",
+                    "subscription",
+                    "fee",
+                    "discount",
+                    "shipping",
+                    "other"
+                  ],
+                  "description": "accounting hint carried in document.issued (default other); invoices only"
+                },
+                "stream": {
+                  "type": "string"
+                },
+                "part_ref": {
+                  "type": "string"
                 }
               }
             }
