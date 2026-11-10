@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Company\Integration;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnforceTokenScope;
-use App\Support\Problem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasExternalRef;
 use App\Notifications\CustomerMailResetPasswordNotification;
 use App\Support\SafeOrderBy;
 use App\Traits\HasCustomFieldsTrait;
@@ -19,10 +20,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Customer extends Authenticatable implements HasMedia
 {
-    use \App\Models\Concerns\HasExternalRef;
-
     use HasApiTokens;
     use HasCustomFieldsTrait;
+    use HasExternalRef;
     use HasFactory;
     use HasRolesAndAbilities;
     use InteractsWithMedia;

@@ -10,6 +10,7 @@ use App\Http\Controllers\Company\Invoice\InvoicesController;
 use App\Http\Controllers\Company\Payment\PaymentsController;
 use App\Http\Controllers\Contract\ContractDocumentsController;
 use Closure;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpFoundation\Response;
@@ -55,7 +56,7 @@ class ContractRepresentation
         $controller = app(ContractDocumentsController::class);
 
         if ($method === 'show') {
-            $model = collect($route->parameters())->first(fn ($p) => $p instanceof \Illuminate\Database\Eloquent\Model);
+            $model = collect($route->parameters())->first(fn ($p) => $p instanceof Model);
 
             return $controller->show($request, $model);
         }

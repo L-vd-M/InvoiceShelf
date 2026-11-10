@@ -5,6 +5,7 @@
 use App\Models\Customer;
 use App\Models\Estimate;
 use App\Models\EstimateItem;
+use App\Models\IdempotencyKey;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Tax;
@@ -75,18 +76,18 @@ test('failed validation is replayed too and a malformed key is refused', functio
 test('requests without a key are unaffected and keys are scoped to the company', function () {
     postJson('api/v1/customers', ['name' => 'A', 'email' => 'a@example.test'])->assertOk();
     postJson('api/v1/customers', ['name' => 'B', 'email' => 'b@example.test'])->assertOk();
-    expect(App\Models\IdempotencyKey::count())->toBe(0);
+    expect(IdempotencyKey::count())->toBe(0);
 });
 
 test('a crashed in-flight request does not block the key forever', function () {
-    App\Models\IdempotencyKey::create([
+    IdempotencyKey::create([
         'company_id' => $this->company->id, 'key' => 'stale-lock-0001', 'method' => 'POST', 'path' => 'api/v1/customers',
         'request_hash' => str_repeat('a', 64), 'locked_at' => now()->subMinutes(10), 'expires_at' => now()->addDay(),
     ]);
 
     postJson('api/v1/customers', ['name' => 'Fresh', 'email' => 'fresh@example.test'], ['Idempotency-Key' => 'stale-lock-0001'])->assertOk();
 
-    $fresh = App\Models\IdempotencyKey::create([
+    $fresh = IdempotencyKey::create([
         'company_id' => $this->company->id, 'key' => 'live-lock-00001', 'method' => 'POST', 'path' => 'api/v1/customers',
         'request_hash' => str_repeat('b', 64), 'locked_at' => now(), 'expires_at' => now()->addDay(),
     ]);
@@ -96,13 +97,13 @@ test('a crashed in-flight request does not block the key forever', function () {
 });
 
 test('expired keys are pruned and reusable', function () {
-    App\Models\IdempotencyKey::create([
+    IdempotencyKey::create([
         'company_id' => $this->company->id, 'key' => 'expired-key-01', 'method' => 'POST', 'path' => 'api/v1/customers',
         'request_hash' => str_repeat('c', 64), 'response_status' => 200, 'response_body' => '{}', 'expires_at' => now()->subHour(),
     ]);
 
     Artisan::call('idempotency:prune');
-    expect(App\Models\IdempotencyKey::count())->toBe(0);
+    expect(IdempotencyKey::count())->toBe(0);
 });
 
 test('GET returns an ETag, If-None-Match gives 304', function () {

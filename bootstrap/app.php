@@ -2,17 +2,17 @@
 
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\CompanyMiddleware;
+use App\Http\Middleware\ConditionalRequests;
 use App\Http\Middleware\ConfigMiddleware;
+use App\Http\Middleware\ContractRepresentation;
 use App\Http\Middleware\CronJobMiddleware;
 use App\Http\Middleware\CustomerGuest;
 use App\Http\Middleware\CustomerPortalMiddleware;
 use App\Http\Middleware\CustomerRedirectIfAuthenticated;
 use App\Http\Middleware\EncryptCookies;
-use App\Http\Middleware\ConditionalRequests;
-use App\Http\Middleware\ContractRepresentation;
 use App\Http\Middleware\EnforceTokenScope;
-use App\Http\Middleware\Idempotency;
 use App\Http\Middleware\EnsureNotContainerized;
+use App\Http\Middleware\Idempotency;
 use App\Http\Middleware\InstallationMiddleware;
 use App\Http\Middleware\PdfMiddleware;
 use App\Http\Middleware\PreventRequestForgery;
@@ -25,16 +25,21 @@ use App\Http\Middleware\TrimStrings;
 use App\Http\Middleware\TrustProxies;
 use App\Http\Middleware\UseInstallWizardTokenAuth;
 use App\Providers\AppServiceProvider;
+use App\Support\Problem;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Lavary\Menu\ServiceProvider;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withProviders([
@@ -112,23 +117,23 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         // API clients that authenticate with a bearer token get RFC 9457 problem+json with a stable `code`
         // (spec 08 section 1); `message` and `errors` stay for clients that read the older shape.
-        $bearerApi = fn (Illuminate\Http\Request $request) => $request->is('api/*') && $request->bearerToken() !== null;
+        $bearerApi = fn (Request $request) => $request->is('api/*') && $request->bearerToken() !== null;
 
-        $exceptions->render(function (Illuminate\Validation\ValidationException $e, Illuminate\Http\Request $request) use ($bearerApi) {
+        $exceptions->render(function (ValidationException $e, Request $request) use ($bearerApi) {
             if ($bearerApi($request)) {
-                return App\Support\Problem::response(422, 'validation_failed', 'Validation failed', implode(' ', $e->validator->errors()->all()), ['errors' => $e->errors(), 'message' => $e->getMessage()]);
+                return Problem::response(422, 'validation_failed', 'Validation failed', implode(' ', $e->validator->errors()->all()), ['errors' => $e->errors(), 'message' => $e->getMessage()]);
             }
         });
 
-        $exceptions->render(function (Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, Illuminate\Http\Request $request) use ($bearerApi) {
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) use ($bearerApi) {
             if ($bearerApi($request)) {
-                return App\Support\Problem::response(404, 'not_found', 'Not found', null, ['message' => 'Not found']);
+                return Problem::response(404, 'not_found', 'Not found', null, ['message' => 'Not found']);
             }
         });
 
-        $exceptions->render(function (Illuminate\Auth\AuthenticationException $e, Illuminate\Http\Request $request) use ($bearerApi) {
+        $exceptions->render(function (AuthenticationException $e, Request $request) use ($bearerApi) {
             if ($bearerApi($request)) {
-                return App\Support\Problem::response(401, 'unauthorized', 'Unauthenticated', null, ['message' => 'Unauthenticated.']);
+                return Problem::response(401, 'unauthorized', 'Unauthenticated', null, ['message' => 'Unauthenticated.']);
             }
         });
     })->create();

@@ -5,6 +5,7 @@
 namespace App\Http\Controllers\Contract;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\ConditionalRequests;
 use App\Http\Requests\EstimatesRequest;
 use App\Http\Requests\InvoicesRequest;
 use App\Http\Requests\PaymentRequest;
@@ -15,7 +16,6 @@ use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\Estimate;
 use App\Models\Invoice;
-use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\UserSetting;
@@ -464,7 +464,7 @@ class ContractDocumentsController extends Controller
         $document->refresh();
 
         return response()->json(ContractPresenter::document($document), $status, [
-            'ETag' => \App\Http\Middleware\ConditionalRequests::etag($document),
+            'ETag' => ConditionalRequests::etag($document),
         ]);
     }
 

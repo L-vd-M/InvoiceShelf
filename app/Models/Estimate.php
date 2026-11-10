@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasExternalRef;
 use App\Services\Document\EstimateService;
 use App\Services\Document\RevisionService;
 use App\Services\Events\EventData;
@@ -25,10 +26,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Estimate extends Model implements HasMedia
 {
-    use \App\Models\Concerns\HasExternalRef;
-
     use GeneratesPdfTrait;
     use HasCustomFieldsTrait;
+    use HasExternalRef;
     use HasFactory;
     use InteractsWithMedia;
 

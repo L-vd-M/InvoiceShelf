@@ -5,6 +5,7 @@
 use App\Models\CompanySetting;
 use App\Models\Currency;
 use App\Models\Customer;
+use App\Models\Estimate;
 use App\Models\Invoice;
 use App\Models\OutboxEvent;
 use App\Models\User;
@@ -29,7 +30,7 @@ beforeEach(function () {
     };
 
     $full = ['documents:read', 'documents:write', 'documents:issue', 'events:read', 'webhooks:manage'];
-    $this->as = fn (array $abilities = null) => $this->withHeaders(['Authorization' => 'Bearer '.($this->tokenFor)($abilities ?? $full)]);
+    $this->as = fn (?array $abilities = null) => $this->withHeaders(['Authorization' => 'Bearer '.($this->tokenFor)($abilities ?? $full)]);
 
     $this->events = fn (string $type) => OutboxEvent::where('type', $type)->orderBy('id')->get();
     $this->money = fn (int $minor) => ['amount_minor' => $minor, 'currency' => $this->currency];
@@ -203,7 +204,7 @@ test('a read-only token cannot create; the web representation is unchanged for f
     $this->flushHeaders();
     $this->withHeaders(['company' => $this->company->id]);
     Sanctum::actingAs($this->user, ['*']);
-    App\Models\Estimate::factory()->create(['company_id' => $this->company->id]);
+    Estimate::factory()->create(['company_id' => $this->company->id]);
     $native = $this->getJson('api/v1/estimates?page=1')->assertOk();
     expect($native->json())->toHaveKey('data')->and($native->json('data.0'))->toHaveKey('estimate_number');
 });
