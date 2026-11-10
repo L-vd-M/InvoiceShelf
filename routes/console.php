@@ -19,6 +19,9 @@ if (InstallUtils::isDbCreated()) {
         ->everyMinute()
         ->withoutOverlapping();
 
+    Schedule::command('idempotency:prune')
+        ->daily();
+
     Schedule::command('check:invoices:status')
         ->daily();
 

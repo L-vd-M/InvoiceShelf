@@ -195,7 +195,7 @@ Route::prefix('/v1')->group(function () {
         Route::post('stop-impersonating', [UsersController::class, 'stopImpersonating']);
     });
 
-    Route::middleware(['auth:sanctum', 'token-scope', 'company'])->group(function () {
+    Route::middleware(['auth:sanctum', 'token-scope', 'company', 'idempotent', 'conditional'])->group(function () {
         Route::middleware(['bouncer'])->group(function () {
 
             // Bootstrap
