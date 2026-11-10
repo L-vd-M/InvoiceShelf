@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasExternalRef;
 use App\Services\Document\InvoiceService;
 use App\Support\Pdf\PdfHtmlSanitizer;
 use App\Support\Pdf\PdfTemplateUtils;
@@ -21,10 +22,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Invoice extends Model implements HasMedia
 {
-    use \App\Models\Concerns\HasExternalRef;
-
     use GeneratesPdfTrait;
     use HasCustomFieldsTrait;
+    use HasExternalRef;
     use HasFactory;
     use InteractsWithMedia;
 

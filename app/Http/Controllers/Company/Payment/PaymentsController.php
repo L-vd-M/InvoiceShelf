@@ -9,6 +9,8 @@ use App\Http\Requests\SendPaymentRequest;
 use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
 use App\Services\Document\PaymentService;
+use App\Support\Problem;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Mail\Markdown;
@@ -55,7 +57,24 @@ class PaymentsController extends Controller
     {
         $this->authorize('create', Payment::class);
 
-        $payment = $this->paymentService->create($request);
+        // idempotent on the bank transaction id: the same transaction is never booked twice
+        if ($request->filled('bank_transaction_id')) {
+            $existing = Payment::whereCompany()->where('bank_transaction_id', $request->bank_transaction_id)->first();
+
+            if ($existing) {
+                if ((int) $existing->invoice_id !== (int) $request->invoice_id || (int) $existing->amount !== (int) $request->amount) {
+                    return Problem::response(409, 'already_exists', 'Bank transaction already booked', 'This bank_transaction_id is recorded with a different invoice or amount.');
+                }
+
+                return (new PaymentResource($existing->load('customer', 'invoice', 'paymentMethod', 'fields')))->response()->setStatusCode(200);
+            }
+        }
+
+        try {
+            $payment = $this->paymentService->create($request);
+        } catch (UniqueConstraintViolationException) {
+            $payment = Payment::whereCompany()->where('bank_transaction_id', $request->bank_transaction_id)->firstOrFail();
+        }
 
         return new PaymentResource($payment);
     }

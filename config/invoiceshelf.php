@@ -19,6 +19,11 @@ return [
     'event_tenant' => env('EVENT_TENANT', 'tarcza'),
 
     /*
+    * Key for the signed export manifest (GET /exports/documents). Defaults to a key derived from APP_KEY.
+    */
+    'export_signing_key' => env('EXPORT_SIGNING_KEY'),
+
+    /*
     * Webhook targets are refused when they resolve to private or reserved addresses.
     * Hosts listed here (comma separated in WEBHOOK_ALLOWED_HOSTS) are exempt, for consumers on the LAN.
     */

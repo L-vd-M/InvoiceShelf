@@ -16,6 +16,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Services\Document\EstimateService;
 use App\Services\Document\QuoteToInvoiceService;
+use App\Support\Problem;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown;
 use Illuminate\Support\Facades\DB;
@@ -125,6 +126,25 @@ class EstimatesController extends Controller
         $data['url'] = $estimate->estimatePdfUrl;
 
         return $markdown->render('emails.send.estimate', ['data' => $data]);
+    }
+
+    /**
+     * Accept on behalf of the customer. Idempotent: an accepted quote is returned unchanged and writes
+     * no second event; a rejected or expired quote cannot be accepted.
+     */
+    public function accept(Request $request, Estimate $estimate)
+    {
+        $this->authorize('update', $estimate);
+
+        if (in_array($estimate->status, [Estimate::STATUS_REJECTED, Estimate::STATUS_EXPIRED], true)) {
+            return Problem::response(409, 'document_immutable', 'Quote can no longer be accepted', "Quote {$estimate->estimate_number} is ".strtolower($estimate->status).'.');
+        }
+
+        if ($estimate->status !== Estimate::STATUS_ACCEPTED) {
+            $this->estimateService->changeStatus($estimate, Estimate::STATUS_ACCEPTED);
+        }
+
+        return new EstimateResource($estimate->refresh()->load('invoice'));
     }
 
     public function clone(Request $request, Estimate $estimate)

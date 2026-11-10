@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Events\EventData;
 use App\Services\Events\OutboxService;
 use Illuminate\Database\Eloquent\Model;
 
@@ -50,16 +51,14 @@ class DocumentDeletion extends Model
             'deleted_by' => $userId ?? auth()->id(),
         ]);
 
-        $number = $deletion->document_number;
-        OutboxService::record('document.deleted', $type, $document, $number, [
-            'document_type' => $type,
-            'number' => $number,
-            'customer_id' => $deletion->customer_id,
-            'total' => $deletion->total === null ? null : (int) $deletion->total,
-            'status' => $deletion->status_at_deletion,
-            'reason_code' => $reasonCode,
-            'reason' => $reason,
-        ]);
+        // payments are not documents in the event catalogue; their deletion stays in the audit log only
+        if ($type !== 'payment') {
+            $number = $deletion->document_number;
+            OutboxService::record('document.deleted', $type === 'estimate' ? 'quote' : $type, $document, $number, EventData::documentDeleted($type, $number, $reasonCode, $reason, [
+                'total' => $deletion->total === null ? null : (int) $deletion->total,
+                'status' => $deletion->status_at_deletion,
+            ]));
+        }
 
         return $deletion;
     }

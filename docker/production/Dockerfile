@@ -39,6 +39,9 @@ FROM base AS production
     # never clobber the fresh one produced by static_builder.
     COPY --chown=www-data:www-data . /var/www/html
     COPY --from=static_builder --chown=www-data:www-data /var/www/html/public/build /var/www/html/public/build
+    # served by GET /api/v1/version; pass --build-arg GIT_SHA=$(git rev-parse HEAD)
+    ARG GIT_SHA=unknown
+    RUN echo "$GIT_SHA" > /var/www/html/GIT_SHA
     # Authenticate composer against GitHub when a token is provided (build secret),
     # so multi-arch builds don't exhaust the unauthenticated API rate limit while the
     # merge-plugin resolves modules. The secret is build-time only (never in the image),

@@ -11,12 +11,12 @@ class Problem
 {
     public static function response(int $status, string $code, string $title, ?string $detail = null, array $extra = [], array $headers = []): JsonResponse
     {
-        return response()->json([
+        return response()->json(array_filter([
             'type' => 'https://docs.tarcza-electronics.com/problems/'.$code,
             'title' => $title,
             'status' => $status,
             'code' => $code,
             'detail' => $detail,
-        ] + $extra, $status, ['Content-Type' => 'application/problem+json'] + $headers);
+        ], fn ($v) => $v !== null) + $extra, $status, ['Content-Type' => 'application/problem+json'] + $headers);
     }
 }

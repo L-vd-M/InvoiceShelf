@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasExternalRef;
 use App\Services\Document\EstimateService;
 use App\Services\Document\RevisionService;
+use App\Services\Events\EventData;
 use App\Services\Events\OutboxService;
 use App\Support\Pdf\PdfHtmlSanitizer;
 use App\Support\Pdf\PdfTemplateUtils;
@@ -24,10 +26,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Estimate extends Model implements HasMedia
 {
-    use \App\Models\Concerns\HasExternalRef;
-
     use GeneratesPdfTrait;
     use HasCustomFieldsTrait;
+    use HasExternalRef;
     use HasFactory;
     use InteractsWithMedia;
 
@@ -359,13 +360,18 @@ class Estimate extends Model implements HasMedia
 
     public function recordAccepted(): void
     {
-        OutboxService::record('quote.accepted', 'estimate', $this, $this->estimate_number, [
-            'number' => $this->estimate_number,
-            'customer_id' => $this->customer_id,
-            'total' => (int) $this->total,
-            'currency' => $this->currency?->code,
-        ]);
+        $this->loadMissing('customer', 'currency');
+
+        OutboxService::record('quote.accepted', 'quote', $this, $this->estimate_number, EventData::quoteAccepted($this));
+        OutboxService::record('deal.won', 'quote', $this, $this->estimate_number, EventData::dealWon($this));
 
         RevisionService::record($this, 'accepted');
+    }
+
+    public function recordRejected(?string $reason = null): void
+    {
+        $this->loadMissing('currency');
+
+        OutboxService::record('deal.lost', 'quote', $this, $this->estimate_number, EventData::dealLost($this, $reason));
     }
 }

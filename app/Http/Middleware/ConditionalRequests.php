@@ -38,7 +38,7 @@ class ConditionalRequests
         if ($changes) {
             $ifMatch = $request->header('If-Match');
 
-            if ($ifMatch === null && $this->isScopedToken($request)) {
+            if ($ifMatch === null && $this->isScopedToken($request) && $this->changesTheDocumentItself($request)) {
                 return Problem::response(428, 'precondition_required', 'If-Match required', 'Send the ETag from your last GET of this document in If-Match.');
             }
 
@@ -49,7 +49,7 @@ class ConditionalRequests
 
         $response = $next($request);
 
-        if ($response->getStatusCode() >= 200 && $response->getStatusCode() < 300 && $request->method() !== 'DELETE') {
+        if ($response->getStatusCode() >= 200 && $response->getStatusCode() < 300 && $request->method() !== 'DELETE' && ! $response->headers->has('ETag')) {
             $fresh = $model->fresh();
 
             if ($fresh) {
@@ -82,6 +82,13 @@ class ConditionalRequests
         }
 
         return null;
+    }
+
+    /** Updates, deletes and the issue/accept actions; creating a child (credit note) does not need the parent's ETag. */
+    private function changesTheDocumentItself(Request $request): bool
+    {
+        return in_array($request->method(), ['PUT', 'PATCH', 'DELETE'], true)
+            || in_array(basename($request->path()), ['issue', 'accept'], true);
     }
 
     private function matches(string $header, string $etag): bool

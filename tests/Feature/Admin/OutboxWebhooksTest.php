@@ -86,7 +86,9 @@ test('issuing writes exactly one document.issued event, a second issue writes no
         ->and($envelope['tenant'])->toBe('tarcza')
         ->and($envelope['subject'])->toBe(['kind' => 'invoice', 'id' => $invoice->invoice_number, 'ref' => (string) $id])
         ->and($envelope['data']['number'])->toBe($invoice->invoice_number)
-        ->and($envelope['data']['total'])->toBe((int) $invoice->total)
+        ->and($envelope['data']['total'])->toBe(['amount_minor' => (int) $invoice->total, 'currency' => $invoice->currency->code])
+        ->and($envelope['data']['payment_reference'])->toBe($invoice->reference_number ?: $invoice->invoice_number)
+        ->and($envelope['data']['sha256'])->toMatch('/^[0-9a-f]{64}$/')
         ->and($events[0]->event_id)->toStartWith('msg_')
         ->and($envelope['occurred_at'])->toMatch('/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/');
 });
@@ -141,7 +143,7 @@ test('recording a payment writes payment.recorded', function () {
 
     $events = ($this->events)('payment.recorded');
     expect($events)->toHaveCount(1)
-        ->and($events[0]->data['amount'])->toBe(10000)
+        ->and($events[0]->data['amount']['amount_minor'])->toBe(10000)
         ->and($events[0]->data['invoice_number'])->toBe($invoice->invoice_number)
         ->and($events[0]->subject_kind)->toBe('payment');
 });
@@ -174,8 +176,10 @@ test('accepting a quote writes quote.accepted once', function () {
 
     $events = ($this->events)('quote.accepted');
     expect($events)->toHaveCount(1)
-        ->and($events[0]->subject_kind)->toBe('estimate')
-        ->and($events[0]->subject_id)->toBe($estimate->estimate_number);
+        ->and($events[0]->subject_kind)->toBe('quote')
+        ->and($events[0]->subject_id)->toBe($estimate->estimate_number)
+        ->and($events[0]->data['payment_reference'])->toBe($estimate->estimate_number);
+    expect(($this->events)('deal.won'))->toHaveCount(1);
 
     postJson("api/v1/estimates/{$estimate->id}/status", ['status' => Estimate::STATUS_REJECTED])->assertOk();
     expect(($this->events)('quote.accepted'))->toHaveCount(1);
@@ -277,7 +281,7 @@ test('failures back off, then dead-letter after 72 hours, and retry puts the del
     expect($list->json('data'))->toHaveCount(1)->and($list->json('data.0.state'))->toBe('failed');
 
     $answer = 204;
-    postJson("api/v1/webhook-deliveries/{$delivery->id}/retry")->assertOk()->assertJsonPath('data.state', 'pending');
+    postJson("api/v1/webhook-deliveries/{$delivery->id}/retry")->assertOk()->assertJsonPath('state', 'pending');
     $service->deliver($delivery->refresh());
     expect($delivery->refresh()->state)->toBe('delivered');
 
@@ -361,20 +365,20 @@ test('delivery refuses a target that became private after it was saved', functio
 
 test('the secret is shown once on create and on rotate, never listed', function () {
     $created = postJson('api/v1/webhook-endpoints', ['url' => 'https://hooks.example.com/in', 'event_types' => ['document.issued']])->assertCreated();
-    $secret = $created->json('data.secret');
+    $secret = $created->json('secret');
     expect($secret)->toStartWith('whsec_');
 
     $list = getJson('api/v1/webhook-endpoints')->assertOk();
     expect(json_encode($list->json()))->not->toContain($secret)->and($list->json('data.0'))->not->toHaveKey('secret');
 
-    $id = $created->json('data.id');
-    $rotated = postJson("api/v1/webhook-endpoints/{$id}/rotate")->assertOk()->json('data.secret');
+    $id = $created->json('id');
+    $rotated = postJson("api/v1/webhook-endpoints/{$id}/rotate")->assertOk()->json('secret');
     expect($rotated)->not->toBe($secret)->and(WebhookEndpoint::find($id)->secret)->toBe($rotated);
 
     // stored encrypted
     expect(DB::table('webhook_endpoints')->where('id', $id)->value('secret'))->not->toBe($rotated);
 
-    patchJson("api/v1/webhook-endpoints/{$id}", ['enabled' => false])->assertOk()->assertJsonPath('data.enabled', false);
+    patchJson("api/v1/webhook-endpoints/{$id}", ['enabled' => false])->assertOk()->assertJsonPath('enabled', false);
     postJson('api/v1/webhook-endpoints', ['url' => 'https://hooks.example.com/in', 'event_types' => ['bogus.type']])->assertStatus(422);
     deleteJson("api/v1/webhook-endpoints/{$id}")->assertOk();
     expect(WebhookEndpoint::count())->toBe(0);
@@ -422,7 +426,7 @@ test('the feed pages by cursor, filters by type and only shows this company', fu
     expect($empty->json('data'))->toBeEmpty()->and($empty->json('next_cursor'))->toBe($page2->json('next_cursor'));
 
     $deletedOnly = getJson('api/v1/events?types=document.deleted')->assertOk();
-    expect($deletedOnly->json('data'))->toHaveCount(1)->and($deletedOnly->json('data.0.type'))->toBe('document.deleted');
+    expect($deletedOnly->json('data'))->toHaveCount(1)->and($deletedOnly->json('data.0.event.type'))->toBe('document.deleted');
 });
 
 // ---------------------------------------------------------------- migration
