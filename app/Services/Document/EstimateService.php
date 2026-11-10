@@ -334,12 +334,6 @@ class EstimateService
             $dueDate = Carbon::now()->addDays($dueDateDays)->format('Y-m-d');
         }
 
-        $serial = (new SerialNumberService)
-            ->setModel(new Invoice)
-            ->setCompany($estimate->company_id)
-            ->setCustomer($estimate->customer_id)
-            ->reserveNextNumbers();
-
         $templateName = $estimate->getInvoiceTemplateName();
         $exchangeRate = $estimate->exchange_rate;
 
@@ -347,9 +341,7 @@ class EstimateService
             'creator_id' => Auth::id(),
             'invoice_date' => $invoiceDate->format('Y-m-d'),
             'due_date' => $dueDate,
-            'invoice_number' => $serial->getNextNumber(),
-            'sequence_number' => $serial->nextSequenceNumber,
-            'customer_sequence_number' => $serial->nextCustomerSequenceNumber,
+            'invoice_number' => Invoice::draftReference(),
             'reference_number' => $estimate->estimate_number,
             'estimate_id' => $estimate->id,
             'source_estimate_number' => $estimate->estimate_number,

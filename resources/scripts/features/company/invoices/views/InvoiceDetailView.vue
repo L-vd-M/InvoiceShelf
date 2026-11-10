@@ -12,6 +12,21 @@
         <span v-else-if="invoiceData.source_estimate_number" class="mr-3 text-sm text-muted">
           {{ $t('invoices.related_estimate') }}: {{ invoiceData.source_estimate_number }}
         </span>
+        <span
+          v-if="invoiceData.is_issued"
+          class="mr-3 text-sm font-medium text-muted"
+          :title="$t('invoices.issued_hint')"
+        >
+          {{ $t('invoices.issued') }}
+        </span>
+        <BaseButton
+          v-if="invoiceData.status === 'DRAFT' && canSend"
+          variant="primary-outline"
+          class="text-sm mr-3"
+          @click="onIssue"
+        >
+          {{ $t('invoices.issue_invoice') }}
+        </BaseButton>
         <div class="text-sm mr-3">
           <BaseButton
             v-if="invoiceData.status === 'DRAFT' && canEdit"
@@ -353,9 +368,26 @@ function onMarkAsSent(): void {
         id: invoiceData.value!.id,
         status: 'SENT',
       })
-      invoiceData.value!.status = 'SENT' as Invoice['status']
       isMarkAsSent.value = true
       isMarkAsSent.value = false
+      loadInvoice()
+    }
+  })
+}
+
+function onIssue(): void {
+  dialogStore.openDialog({
+    title: t('general.are_you_sure'),
+    message: t('invoices.confirm_issue'),
+    yesLabel: t('general.ok'),
+    noLabel: t('general.cancel'),
+    variant: 'primary',
+    hideNoButton: false,
+    size: 'lg',
+  }).then(async (res: boolean) => {
+    if (res) {
+      await invoiceStore.issueInvoice({ id: invoiceData.value!.id })
+      loadInvoice()
     }
   })
 }

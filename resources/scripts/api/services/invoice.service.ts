@@ -98,6 +98,11 @@ export const invoiceService = {
     return data
   },
 
+  async issue(id: number): Promise<ApiResponse<Invoice>> {
+    const { data } = await client.post(`${API.INVOICES}/${id}/issue`)
+    return data
+  },
+
   async clone(id: number): Promise<ApiResponse<Invoice>> {
     const { data } = await client.post(`${API.INVOICES}/${id}/clone`)
     return data

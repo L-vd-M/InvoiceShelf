@@ -292,6 +292,8 @@ Route::prefix('/v1')->group(function () {
 
             Route::post('/invoices/{invoice}/send', [InvoicesController::class, 'send']);
 
+            Route::post('/invoices/{invoice}/issue', [InvoicesController::class, 'issue']);
+
             Route::post('/invoices/{invoice}/clone', [InvoicesController::class, 'clone']);
 
             Route::post('/invoices/{invoice}/convert-to-estimate', [InvoicesController::class, 'convertToEstimate']);

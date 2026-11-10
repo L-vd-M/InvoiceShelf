@@ -87,6 +87,15 @@
       </BaseDropdownItem>
     </router-link>
 
+    <!-- Issue Invoice -->
+    <BaseDropdownItem v-if="row.status === 'DRAFT' && canSend" @click="onIssue">
+      <BaseIcon
+        name="LockClosedIcon"
+        class="w-5 h-5 mr-3 text-subtle group-hover:text-muted"
+      />
+      {{ $t('invoices.issue_invoice') }}
+    </BaseDropdownItem>
+
     <!-- Mark as Sent -->
     <BaseDropdownItem v-if="row.status === 'DRAFT' && !isDetailView && canSend" @click="onMarkAsSent">
       <BaseIcon
@@ -115,7 +124,7 @@
     </BaseDropdownItem>
 
     <!-- Delete Invoice -->
-    <BaseDropdownItem v-if="canDelete" @click="removeInvoice">
+    <BaseDropdownItem v-if="canDelete && !row.is_issued" @click="removeInvoice">
       <BaseIcon
         name="TrashIcon"
         class="w-5 h-5 mr-3 text-subtle group-hover:text-muted"
@@ -261,6 +270,24 @@ function onMarkAsSent(): void {
   }).then(async (res: boolean) => {
     if (res) {
       await invoiceStore.markAsSent({ id: props.row.id, status: 'SENT' })
+      props.table?.refresh()
+    }
+  })
+}
+
+function onIssue(): void {
+  dialogStore.openDialog({
+    title: t('general.are_you_sure'),
+    message: t('invoices.confirm_issue'),
+    yesLabel: t('general.ok'),
+    noLabel: t('general.cancel'),
+    variant: 'primary',
+    hideNoButton: false,
+    size: 'lg',
+  }).then(async (res: boolean) => {
+    if (res) {
+      await invoiceStore.issueInvoice({ id: props.row.id })
+      props.loadData()
       props.table?.refresh()
     }
   })

@@ -52,6 +52,7 @@ class QuoteToInvoiceService
             }
 
             $invoice = $this->estimateService->convertToInvoice($estimate);
+            $invoice = $this->invoiceService->issue($invoice);
 
             $this->recordPayment($invoice, $estimate, $paymentData, $creatorId);
 

@@ -69,6 +69,7 @@ class Invoice extends Model implements HasMedia
             'discount' => 'float',
             'discount_val' => 'integer',
             'exchange_rate' => 'float',
+            'issued_at' => 'datetime',
         ];
     }
 
@@ -146,8 +147,22 @@ class Invoice extends Model implements HasMedia
         return false;
     }
 
+    public static function draftReference(): string
+    {
+        return 'DRAFT-'.strtoupper(Str::random(8));
+    }
+
+    public function isIssued(): bool
+    {
+        return $this->issued_at !== null;
+    }
+
     public function getAllowEditAttribute()
     {
+        if ($this->isIssued()) {
+            return false;
+        }
+
         $retrospective_edit = CompanySetting::getSetting('retrospective_edits', $this->company_id);
 
         $allowed = true;

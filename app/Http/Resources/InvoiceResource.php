@@ -43,6 +43,8 @@ class InvoiceResource extends JsonResource
             'estimate_id' => $this->estimate_id,
             'source_estimate_number' => $this->source_estimate_number,
             'sequence_number' => $this->sequence_number,
+            'issued_at' => $this->issued_at,
+            'is_issued' => $this->isIssued(),
             'exchange_rate' => $this->exchange_rate,
             'base_discount_val' => $this->base_discount_val,
             'base_sub_total' => $this->base_sub_total,

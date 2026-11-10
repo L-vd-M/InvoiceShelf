@@ -82,7 +82,7 @@ test('create invoice', function () {
     ]);
 
     $this->assertDatabaseHas('invoices', [
-        'invoice_number' => $invoice['invoice_number'],
+        'sequence_number' => null,
         'discount' => $invoice['discount'],
         'notes' => $invoice['notes'],
         'customer_id' => $invoice['customer_id'],
