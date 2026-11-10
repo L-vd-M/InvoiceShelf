@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasExternalRef;
 use App\Notifications\CustomerMailResetPasswordNotification;
 use App\Support\SafeOrderBy;
 use App\Traits\HasCustomFieldsTrait;
@@ -21,6 +22,7 @@ class Customer extends Authenticatable implements HasMedia
 {
     use HasApiTokens;
     use HasCustomFieldsTrait;
+    use HasExternalRef;
     use HasFactory;
     use HasRolesAndAbilities;
     use InteractsWithMedia;
@@ -245,6 +247,14 @@ class Customer extends Authenticatable implements HasMedia
 
         if ($filters->get('search')) {
             $query->whereSearch($filters->get('search'));
+        }
+
+        if ($filters->get('external_ref')) {
+            $query->whereExternalRef($filters->get('external_ref'));
+        }
+
+        if ($filters->get('updated_since')) {
+            $query->where('customers.updated_at', '>=', Carbon::parse($filters->get('updated_since')));
         }
 
         if ($filters->get('contact_name')) {

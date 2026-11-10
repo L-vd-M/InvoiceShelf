@@ -20,6 +20,7 @@ use App\Http\Controllers\Company\Address\AddressSuggestController;
 use App\Http\Controllers\Company\Ai\ChatController as AiChatController;
 use App\Http\Controllers\Company\Ai\ConversationController as AiConversationController;
 use App\Http\Controllers\Company\Ai\GenerationController as AiGenerationController;
+use App\Http\Controllers\Company\Audit\AuditLogController;
 use App\Http\Controllers\Company\Auth\AuthController;
 use App\Http\Controllers\Company\Auth\ForgotPasswordController;
 use App\Http\Controllers\Company\Auth\InvitationRegistrationController;
@@ -39,6 +40,7 @@ use App\Http\Controllers\Company\Events\WebhookEndpointsController;
 use App\Http\Controllers\Company\ExchangeRate\ExchangeRateProviderController;
 use App\Http\Controllers\Company\Expense\ExpenseCategoriesController;
 use App\Http\Controllers\Company\Expense\ExpensesController;
+use App\Http\Controllers\Company\Export\DocumentExportController;
 use App\Http\Controllers\Company\General\BootstrapController;
 use App\Http\Controllers\Company\General\ConfigController;
 use App\Http\Controllers\Company\General\FormatsController;
@@ -46,6 +48,7 @@ use App\Http\Controllers\Company\General\InvitationResponseController;
 use App\Http\Controllers\Company\General\NotesController;
 use App\Http\Controllers\Company\General\SearchController;
 use App\Http\Controllers\Company\General\SerialNumberController;
+use App\Http\Controllers\Company\Integration\IntegrationTokensController;
 use App\Http\Controllers\Company\Invoice\InvoicesController;
 use App\Http\Controllers\Company\Invoice\InvoiceTemplatesController;
 use App\Http\Controllers\Company\Item\ItemsController;
@@ -78,6 +81,8 @@ use App\Http\Controllers\CustomerPortal\General\ProfileController as CustomerPro
 use App\Http\Controllers\CustomerPortal\Invoice\InvoicesController as CustomerInvoicesController;
 use App\Http\Controllers\CustomerPortal\Payment\PaymentMethodController;
 use App\Http\Controllers\CustomerPortal\Payment\PaymentsController as CustomerPaymentsController;
+use App\Http\Controllers\HealthController;
+use App\Http\Controllers\OpenApiController;
 use App\Http\Controllers\Setup\AiConfigurationController as InstallerAiConfigurationController;
 use App\Http\Controllers\Setup\AppDomainController;
 use App\Http\Controllers\Setup\DatabaseConfigurationController;
@@ -118,6 +123,15 @@ Route::prefix('/v1')->group(function () {
     // ----------------------------------
 
     Route::get('/app/version', AppVersionController::class);
+
+    // Probes (no authentication, counts only)
+    // ----------------------------------
+
+    Route::get('/health', [HealthController::class, 'health'])->middleware('throttle:60,1');
+
+    Route::get('/version', [HealthController::class, 'version'])->middleware('throttle:60,1');
+
+    Route::get('/openapi.json', OpenApiController::class)->middleware('throttle:60,1');
 
     // Authentication & Password Reset
     // ----------------------------------
@@ -195,7 +209,7 @@ Route::prefix('/v1')->group(function () {
         Route::post('stop-impersonating', [UsersController::class, 'stopImpersonating']);
     });
 
-    Route::middleware(['auth:sanctum', 'company'])->group(function () {
+    Route::middleware(['auth:sanctum', 'token-scope', 'company', 'idempotent', 'conditional', 'contract'])->group(function () {
         Route::middleware(['bouncer'])->group(function () {
 
             // Bootstrap
@@ -299,6 +313,8 @@ Route::prefix('/v1')->group(function () {
 
             Route::post('/invoices/{invoice}/issue', [InvoicesController::class, 'issue']);
 
+            Route::get('/invoices/{invoice}/pdf', [InvoicesController::class, 'pdf']);
+
             Route::post('/invoices/{invoice}/clone', [InvoicesController::class, 'clone']);
 
             Route::post('/invoices/{invoice}/convert-to-estimate', [InvoicesController::class, 'convertToEstimate']);
@@ -335,6 +351,24 @@ Route::prefix('/v1')->group(function () {
             Route::get('/credit-notes/{creditNote}', [CreditNotesController::class, 'show']);
 
             Route::get('/credit-notes/{creditNote}/pdf', [CreditNotesController::class, 'pdf']);
+
+            Route::post('/credit-notes/{creditNote}/issue', [CreditNotesController::class, 'issue']);
+
+            // Audit trail and bookkeeper export (owner, read-only)
+            // -------------------------------------------------
+
+            Route::get('/audit-log', AuditLogController::class);
+
+            Route::get('/exports/documents', DocumentExportController::class);
+
+            // Integration tokens (owner, full-access session only)
+            // -------------------------------------------------
+
+            Route::get('/integration-tokens', [IntegrationTokensController::class, 'index']);
+
+            Route::post('/integration-tokens', [IntegrationTokensController::class, 'store']);
+
+            Route::delete('/integration-tokens/{id}', [IntegrationTokensController::class, 'destroy']);
 
             // Events and webhooks (owner-only, token abilities events:read / webhooks:manage)
             // -------------------------------------------------
@@ -376,6 +410,8 @@ Route::prefix('/v1')->group(function () {
             Route::post('/estimates/{estimate}/status', [EstimatesController::class, 'changeStatus']);
 
             Route::post('/estimates/{estimate}/convert-to-invoice', [EstimatesController::class, 'convertToInvoice']);
+
+            Route::post('/estimates/{estimate}/accept', [EstimatesController::class, 'accept']);
 
             Route::post('/estimates/{estimate}/issue-invoice', [EstimatesController::class, 'issueInvoice']);
 

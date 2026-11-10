@@ -35,8 +35,8 @@ class EventsFeedController extends Controller
         $rows = $rows->take($limit);
 
         return response()->json([
-            'data' => $rows->map(fn (OutboxEvent $e) => ['id' => $e->event_id, 'cursor' => (string) $e->id] + $e->envelope())->values(),
-            'next_cursor' => $rows->isEmpty() ? (string) $after : (string) $rows->last()->id,
+            'data' => $rows->map(fn (OutboxEvent $e) => ['id' => $e->event_id, 'cursor' => (string) $e->id, 'event' => $e->envelope()])->values(),
+            'next_cursor' => $rows->isEmpty() ? ($after ? (string) $after : null) : (string) $rows->last()->id,
             'has_more' => $hasMore,
         ]);
     }

@@ -63,6 +63,14 @@ class CreditNotesController extends Controller
         return (new CreditNoteResource($creditNote))->response()->setStatusCode(201);
     }
 
+    /** A credit note is issued the moment it is created; issuing again returns it unchanged. */
+    public function issue(CreditNote $creditNote)
+    {
+        $this->authorize('view', $creditNote->invoice);
+
+        return new CreditNoteResource($creditNote->load('items', 'customer', 'invoice'));
+    }
+
     public function creditable(Invoice $invoice)
     {
         $this->authorize('view', $invoice);

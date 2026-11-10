@@ -121,8 +121,7 @@ test('a seeded negotiation produces the known answers', function () {
     $won = ($this->events)('deal.won');
     expect($won)->toHaveCount(1)
         ->and($won[0]->subject_ref)->toBe($id)
-        ->and($won[0]->data['total'])->toBe(18000)
-        ->and($won[0]->data['paid'])->toBeFalse();
+        ->and($won[0]->data['total']['amount_minor'])->toBe(18000);
 });
 
 test('edits before the first send are not negotiation', function () {
@@ -222,8 +221,8 @@ test('marking a quote lost records the reason, closes it and writes deal.lost on
 
     $lost = ($this->events)('deal.lost');
     expect($lost)->toHaveCount(1)
-        ->and($lost[0]->data['reason_code'])->toBe('price')
-        ->and($lost[0]->data['first_total'])->toBe(20000);
+        ->and($lost[0]->data['reason'])->toBe('price')
+        ->and($lost[0]->data['total']['amount_minor'])->toBe(20000);
 
     // same call again: nothing new
     $count = DocumentRevision::count();
@@ -234,6 +233,18 @@ test('marking a quote lost records the reason, closes it and writes deal.lost on
     postJson("api/v1/estimates/{$id}/lost", ['reason_code' => 'competitor'])->assertOk()->assertJsonPath('data.lost_reason', 'competitor');
     expect(($this->reasons)($id))->toBe(['created', 'sent', 'lost', 'lost'])
         ->and(($this->events)('deal.lost'))->toHaveCount(1);
+});
+
+test('a quote the customer already rejected keeps its single deal.lost when a reason is added', function () {
+    $id = ($this->create)();
+    ($this->status)($id, Estimate::STATUS_REJECTED);
+    expect(($this->events)('deal.lost'))->toHaveCount(1);
+
+    postJson("api/v1/estimates/{$id}/lost", ['reason_code' => 'competitor'])->assertOk()
+        ->assertJsonPath('data.outcome', 'lost')->assertJsonPath('data.lost_reason', 'competitor');
+
+    expect(($this->events)('deal.lost'))->toHaveCount(1)
+        ->and(($this->reasons)($id))->toBe(['created', 'rejected', 'lost']);
 });
 
 test('a won deal cannot be marked lost and an unknown reason is refused', function () {
@@ -280,7 +291,9 @@ test('reassigning a quote writes a revision and a document.revised event, once',
     expect($events)->toHaveCount(1)
         ->and($events[0]->data['owner_user_id'])->toBe($mate->id)
         ->and($events[0]->data['previous_owner_user_id'])->toBe($this->user->id)
-        ->and($events[0]->data['reason'])->toBe('assigned');
+        ->and($events[0]->data['reason'])->toBe('assigned')
+        ->and($events[0]->data['total']['amount_minor'])->toBe(20000)
+        ->and($events[0]->subject_kind)->toBe('quote');
 
     // same owner again: nothing new
     $count = DocumentRevision::count();
@@ -403,7 +416,11 @@ test('the deal tables and columns exist and the migration rolls back', function 
         ->and(Schema::hasColumns('estimates', ['owner_user_id', 'lost_reason', 'lost_at']))->toBeTrue()
         ->and(Schema::hasColumn('users', 'sales_team'))->toBeTrue();
 
-    Artisan::call('migrate:rollback', ['--step' => 2, '--force' => true]);
+    // other migrations were added after these two, so roll back by path rather than by step
+    Artisan::call('migrate:rollback', ['--force' => true, '--path' => [
+        'database/migrations/2026_10_18_100000_create_deal_lifecycles_table.php',
+        'database/migrations/2026_10_18_090000_add_deal_fields_to_estimates_and_users.php',
+    ]]);
 
     expect(Schema::hasTable('deal_lifecycles'))->toBeFalse()
         ->and(Schema::hasColumn('estimates', 'lost_reason'))->toBeFalse()

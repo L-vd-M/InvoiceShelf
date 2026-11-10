@@ -10,6 +10,7 @@ use App\Models\Estimate;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\User;
+use App\Services\Events\EventData;
 use App\Services\Events\OutboxService;
 use Carbon\Carbon;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -65,10 +66,10 @@ class DealLifecycleService
 
     /**
      * Recompute the row of one quote. Call inside the transaction that changed the quote, its
-     * invoice or a payment. deal.won / deal.lost are written when the outcome changes into won
-     * or lost, so a repeated call writes nothing.
+     * invoice or a payment. It writes no events: deal.won and deal.lost belong to the status
+     * change itself (Estimate::recordAccepted / recordRejected, the integration contract).
      */
-    public static function sync(Estimate $estimate, bool $emit = true): ?DealLifecycle
+    public static function sync(Estimate $estimate): ?DealLifecycle
     {
         $fresh = Estimate::query()->with('currency')->find($estimate->getKey());
 
@@ -81,7 +82,6 @@ class DealLifecycleService
         for ($try = 1; ; $try++) {
             try {
                 $row = DealLifecycle::firstOrNew(['first_quote_id' => $fresh->id]);
-                $previous = $row->exists ? $row->outcome : null;
                 $row->fill($attributes)->save();
 
                 break;
@@ -90,10 +90,6 @@ class DealLifecycleService
                     throw $e;
                 }
             }
-        }
-
-        if ($emit && $previous !== $row->outcome && in_array($row->outcome, ['won', 'lost'], true)) {
-            self::emit($row, $fresh);
         }
 
         return $row;
@@ -117,23 +113,23 @@ class DealLifecycleService
      */
     public static function ensure(Estimate $estimate): DealLifecycle
     {
-        return DealLifecycle::where('first_quote_id', $estimate->id)->first() ?? self::sync($estimate, emit: false);
+        return DealLifecycle::where('first_quote_id', $estimate->id)->first() ?? self::sync($estimate);
     }
 
     /**
-     * Rebuild every row (or one company's). Idempotent; with emit off it writes no events, which is
-     * what the nightly job and the migration backfill use.
+     * Rebuild every row (or one company's). Idempotent and writes no events: the nightly job and
+     * the migration backfill use it.
      */
-    public static function rebuildAll(?int $companyId = null, bool $emit = false): int
+    public static function rebuildAll(?int $companyId = null): int
     {
         $count = 0;
 
         Estimate::query()
             ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->orderBy('id')
-            ->chunkById(200, function ($estimates) use (&$count, $emit) {
+            ->chunkById(200, function ($estimates) use (&$count) {
                 foreach ($estimates as $estimate) {
-                    DB::transaction(fn () => self::sync($estimate, $emit));
+                    DB::transaction(fn () => self::sync($estimate));
                     $count++;
                 }
             });
@@ -173,11 +169,18 @@ class DealLifecycleService
                 return self::ensure($locked);
             }
 
+            $wasRejected = $locked->status === Estimate::STATUS_REJECTED;
+
             $locked->forceFill([
                 'status' => Estimate::STATUS_REJECTED,
                 'lost_reason' => $reasonCode,
                 'lost_at' => $locked->lost_at ?? now(),
             ])->save();
+
+            // a quote the customer already rejected has written its deal.lost; a correction is not a second loss
+            if (! $wasRejected) {
+                $locked->recordRejected($reasonCode);
+            }
 
             RevisionService::record($locked, 'lost', ['note' => $text]);
 
@@ -211,12 +214,14 @@ class DealLifecycleService
                 'note' => 'Owner: '.($from ?? 'nobody').' → '.$user->name,
             ]);
 
-            OutboxService::record('document.revised', 'estimate', $locked, $locked->estimate_number, [
+            $locked->loadMissing('currency');
+
+            OutboxService::record('document.revised', 'quote', $locked, $locked->estimate_number, [
                 'revision_id' => $revision?->id,
                 'revision_no' => $revision?->revision_no,
                 'number' => $locked->estimate_number,
                 'reason' => 'assigned',
-                'total' => (int) $locked->total,
+                'total' => EventData::money($locked, (int) $locked->total),
                 'owner_user_id' => (int) $user->id,
                 'previous_owner_user_id' => $before,
                 'diff_summary' => $revision ? RevisionDiffService::summarise($revision->diff_from_previous ?? []) : null,
@@ -364,35 +369,5 @@ class DealLifecycleService
         }
 
         return [Carbon::parse($payments->first()->payment_date)->startOfDay(), $fully];
-    }
-
-    private static function emit(DealLifecycle $row, Estimate $estimate): void
-    {
-        $invoice = $row->invoice_id ? Invoice::find($row->invoice_id) : null;
-
-        $common = [
-            'number' => $estimate->estimate_number,
-            'customer_id' => $estimate->customer_id,
-            'owner_user_id' => $row->owner_user_id,
-            'currency' => $row->currency,
-        ];
-
-        if ($row->outcome === 'won') {
-            OutboxService::record('deal.won', 'estimate', $estimate, $estimate->estimate_number, $common + [
-                'total' => $row->final_total_minor,
-                'invoice_id' => $invoice?->id,
-                'invoice_number' => $invoice?->invoice_number,
-                'accepted_at' => $row->accepted_at?->utc()->format('Y-m-d\TH:i:s\Z'),
-                'paid' => $row->fully_paid_at !== null,
-                'fully_paid_at' => $row->fully_paid_at?->format('Y-m-d'),
-            ]);
-
-            return;
-        }
-
-        OutboxService::record('deal.lost', 'estimate', $estimate, $estimate->estimate_number, $common + [
-            'reason_code' => $row->lost_reason,
-            'first_total' => $row->first_total_minor,
-        ]);
     }
 }

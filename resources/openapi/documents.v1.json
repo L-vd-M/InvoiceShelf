@@ -1,0 +1,1853 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "TARCZA Documents API",
+    "version": "1.2.0",
+    "description": "Quotes, invoices, credit notes, payments, events and webhooks of the Documents application (InvoiceShelf fork). Superset of the contract kit file documents.v1.yaml (contracts 1.2). Calls made with an integration token (abilities documents:*, events:read, webhooks:manage; see POST /integration-tokens) get the representation described here; the web UI keeps the native InvoiceShelf shapes on the same paths. Every call needs the token; the company is taken from the token. Errors are RFC 9457 problem+json with a stable `code`.",
+    "license": {
+      "name": "AGPL-3.0-or-later",
+      "identifier": "AGPL-3.0-or-later"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "bearer": []
+    }
+  ],
+  "paths": {
+    "/estimates": {
+      "get": {
+        "operationId": "listEstimates",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExternalRef"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/UpdatedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/List"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      },
+      "post": {
+        "operationId": "createEstimate",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "created",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "replay of an idempotent request or existing external_ref",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/estimates/{id}": {
+      "get": {
+        "operationId": "getEstimate",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/estimates/{id}/accept": {
+      "post": {
+        "operationId": "acceptEstimate",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "428": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/invoices": {
+      "get": {
+        "operationId": "listInvoices",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExternalRef"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/UpdatedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/List"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      },
+      "post": {
+        "operationId": "createInvoice",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "created",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/invoices/{id}": {
+      "get": {
+        "operationId": "getInvoice",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/invoices/{id}/issue": {
+      "post": {
+        "operationId": "issueInvoice",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "428": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/invoices/{id}/pdf": {
+      "get": {
+        "operationId": "invoicePdf",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF",
+            "headers": {
+              "Digest": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^sha-256=[A-Za-z0-9+/]+=*$"
+                }
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/invoices/{id}/credit-notes": {
+      "post": {
+        "operationId": "createCreditNote",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "total_minor": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/credit-notes/{id}/issue": {
+      "post": {
+        "operationId": "issueCreditNote",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "428": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "credit-notes"
+        ]
+      }
+    },
+    "/payments": {
+      "post": {
+        "operationId": "createPayment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "same external_ref returns the existing payment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/webhook-endpoints": {
+      "get": {
+        "operationId": "listWebhookEndpoints",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/List"
+          }
+        },
+        "tags": [
+          "webhooks"
+        ]
+      },
+      "post": {
+        "operationId": "createWebhookEndpoint",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "url",
+                  "event_types"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "event_types": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "catalogue_version": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "url",
+                    "secret"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "secret": {
+                      "type": "string",
+                      "pattern": "^whsec_"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "webhooks"
+        ]
+      }
+    },
+    "/webhook-deliveries": {
+      "get": {
+        "operationId": "listWebhookDeliveries",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "pending",
+                "delivered",
+                "failed"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/List"
+          }
+        },
+        "tags": [
+          "webhooks"
+        ]
+      }
+    },
+    "/webhook-deliveries/{id}/retry": {
+      "post": {
+        "operationId": "retryWebhookDelivery",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "retried",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "tags": [
+          "webhooks"
+        ]
+      }
+    },
+    "/events": {
+      "get": {
+        "operationId": "listEvents",
+        "parameters": [
+          {
+            "name": "after",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "types",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "pull feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "next_cursor"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "event"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "cursor": {
+                            "type": "string"
+                          },
+                          "event": {
+                            "$ref": "#/components/schemas/Event"
+                          }
+                        }
+                      }
+                    },
+                    "next_cursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "has_more": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "events"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "database down",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/version": {
+      "get": {
+        "operationId": "version",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "version",
+                    "git_sha"
+                  ],
+                  "properties": {
+                    "version": {
+                      "type": "string"
+                    },
+                    "git_sha": {
+                      "type": "string"
+                    },
+                    "migration_head": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/credit-notes": {
+      "get": {
+        "operationId": "listCreditNotes",
+        "tags": [
+          "credit-notes"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/UpdatedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/List"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/credit-notes/{id}": {
+      "get": {
+        "operationId": "getCreditNote",
+        "tags": [
+          "credit-notes"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/credit-notes/{id}/pdf": {
+      "get": {
+        "operationId": "creditNotePdf",
+        "tags": [
+          "credit-notes"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/webhook-endpoints/{id}": {
+      "patch": {
+        "operationId": "updateWebhookEndpoint",
+        "tags": [
+          "webhooks"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "event_types": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpoint"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteWebhookEndpoint",
+        "tags": [
+          "webhooks"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "deleted"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/webhook-endpoints/{id}/rotate": {
+      "post": {
+        "operationId": "rotateWebhookEndpointSecret",
+        "tags": [
+          "webhooks"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "new secret, shown once",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpoint"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/integration-tokens": {
+      "get": {
+        "operationId": "listIntegrationTokens",
+        "tags": [
+          "tokens"
+        ],
+        "description": "Owner with a full-access session only.",
+        "responses": {
+          "200": {
+            "description": "tokens (without secrets)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/IntegrationToken"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createIntegrationToken",
+        "tags": [
+          "tokens"
+        ],
+        "description": "Owner with a full-access session only. The token is shown once.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "abilities"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "abilities": {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "documents:read",
+                        "documents:write",
+                        "documents:issue",
+                        "documents:shadow",
+                        "events:read",
+                        "webhooks:manage",
+                        "analytics:read"
+                      ]
+                    }
+                  },
+                  "expires_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/IntegrationToken"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/integration-tokens/{id}": {
+      "delete": {
+        "operationId": "revokeIntegrationToken",
+        "tags": [
+          "tokens"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "revoked"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/audit-log": {
+      "get": {
+        "operationId": "auditLog",
+        "tags": [
+          "operations"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "deletion",
+                "revision",
+                "token"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/List"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/exports/documents": {
+      "get": {
+        "operationId": "exportDocuments",
+        "tags": [
+          "operations"
+        ],
+        "description": "Issued invoices and credit notes with totals; `manifest.signature` is v1,base64(HMAC-SHA256 of the manifest JSON).",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "csv",
+                "json"
+              ],
+              "default": "json"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "export",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "count",
+                    "totals",
+                    "documents",
+                    "manifest"
+                  ]
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "openapi",
+        "tags": [
+          "operations"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "this document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "parameters": {
+      "Id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ExternalRef": {
+        "name": "external_ref",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "pattern": "^[a-z0-9_-]+:.+$"
+        }
+      },
+      "Cursor": {
+        "name": "cursor",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        }
+      },
+      "UpdatedSince": {
+        "name": "updated_since",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "schema": {
+          "type": "string",
+          "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      },
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "From": {
+        "name": "from",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "To": {
+        "name": "to",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "responses": {
+      "List": {
+        "description": "cursor page",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data",
+                "next_cursor"
+              ],
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "next_cursor": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "Problem": {
+        "description": "RFC 9457 problem",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Problem": {
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "description": "Stable machine-readable code",
+            "examples": [
+              "document_immutable",
+              "number_conflict",
+              "validation_failed",
+              "idempotency_conflict",
+              "idempotency_key_invalid",
+              "idempotency_in_progress",
+              "not_found",
+              "unauthorized",
+              "insufficient_ability",
+              "precondition_failed",
+              "precondition_required",
+              "already_exists"
+            ]
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Money": {
+        "type": "object",
+        "required": [
+          "amount_minor",
+          "currency"
+        ],
+        "properties": {
+          "amount_minor": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          }
+        }
+      },
+      "DocumentInput": {
+        "type": "object",
+        "required": [
+          "customer_ref",
+          "total"
+        ],
+        "properties": {
+          "customer_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "total": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "supplied_number": {
+            "type": "string",
+            "pattern": "^[A-Z0-9-]{3,40}$",
+            "description": "shadow mode, needs ability documents:shadow (contracts 1.2)"
+          },
+          "external_ref": {
+            "type": "object",
+            "required": [
+              "source",
+              "id"
+            ],
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "quantity",
+                "unit_price_minor"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "unit_price_minor": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "kind": {
+                  "enum": [
+                    "goods",
+                    "service",
+                    "subscription",
+                    "fee",
+                    "discount",
+                    "shipping",
+                    "other"
+                  ],
+                  "description": "accounting hint carried in document.issued (default other); invoices only"
+                },
+                "stream": {
+                  "type": "string"
+                },
+                "part_ref": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "customer": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              }
+            },
+            "description": "creates the customer when customer_ref is source:id and unknown"
+          },
+          "reference_number": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "Document": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "customer_ref",
+          "total",
+          "payment_reference"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "issued",
+              "accepted",
+              "voided"
+            ]
+          },
+          "customer_ref": {
+            "type": "string"
+          },
+          "total": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "payment_reference": {
+            "type": "string"
+          },
+          "external_ref": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "paid_status": {
+            "type": "string",
+            "description": "invoices: UNPAID, PARTIALLY_PAID, PAID"
+          },
+          "due_amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "issue_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "invoice_id": {
+            "type": "string",
+            "description": "quotes: the invoice issued from them; credit notes: the credited invoice"
+          },
+          "invoice_number": {
+            "type": "string"
+          },
+          "native_status": {
+            "type": "string"
+          }
+        }
+      },
+      "PaymentInput": {
+        "type": "object",
+        "required": [
+          "invoice_id",
+          "amount",
+          "external_ref"
+        ],
+        "properties": {
+          "invoice_id": {
+            "type": "string"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "external_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "required": [
+          "id",
+          "invoice_id",
+          "amount",
+          "external_ref"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "invoice_id": {
+            "type": "string"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "external_ref": {
+            "type": "string"
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "ok",
+              "degraded",
+              "down"
+            ]
+          },
+          "database": {
+            "type": "object"
+          },
+          "queue": {
+            "type": "object"
+          },
+          "outbox": {
+            "type": "object",
+            "properties": {
+              "events": {
+                "type": "integer"
+              },
+              "pending_deliveries": {
+                "type": "integer"
+              },
+              "oldest_pending_seconds": {
+                "type": "integer"
+              },
+              "dead_letters": {
+                "type": "integer"
+              }
+            }
+          },
+          "disk": {
+            "type": "object",
+            "properties": {
+              "free_percent": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      },
+      "Event": {
+        "type": "object",
+        "required": [
+          "type",
+          "version",
+          "tenant",
+          "occurred_at",
+          "source",
+          "subject",
+          "data"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "version": {
+            "const": 1
+          },
+          "tenant": {
+            "type": "string"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "const": "documents"
+          },
+          "subject": {
+            "type": "object"
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      },
+      "WebhookEndpoint": {
+        "type": "object",
+        "required": [
+          "id",
+          "url"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "event_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string",
+            "description": "only on create and rotate"
+          }
+        }
+      },
+      "IntegrationToken": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "abilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "token": {
+            "type": "string",
+            "description": "shown once"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "documents"
+    },
+    {
+      "name": "credit-notes"
+    },
+    {
+      "name": "payments"
+    },
+    {
+      "name": "events"
+    },
+    {
+      "name": "webhooks"
+    },
+    {
+      "name": "operations"
+    },
+    {
+      "name": "tokens"
+    }
+  ]
+}

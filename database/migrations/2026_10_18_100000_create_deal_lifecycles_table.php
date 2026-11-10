@@ -38,7 +38,7 @@ return new class extends Migration
             $table->index(['company_id', 'customer_id']);
         });
 
-        DealLifecycleService::rebuildAll(emit: false);
+        DealLifecycleService::rebuildAll();
     }
 
     public function down(): void

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\HasExternalRefInput;
 use App\Models\CompanySetting;
 use App\Models\Customer;
 use App\Models\Estimate;
@@ -11,6 +12,8 @@ use Illuminate\Validation\Rule;
 
 class EstimatesRequest extends FormRequest
 {
+    use HasExternalRefInput;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -89,6 +92,8 @@ class EstimatesRequest extends FormRequest
             ],
         ];
 
+        $rules += $this->externalRefRules('estimates', $this->route('estimate')?->id);
+
         $companyCurrency = CompanySetting::getSetting('currency', $this->header('company'));
 
         $customer = Customer::find($this->customer_id);
@@ -133,7 +138,7 @@ class EstimatesRequest extends FormRequest
             $discount_per_item
         );
 
-        return collect($this->except('items', 'taxes'))
+        return collect($this->except('items', 'taxes', 'external_ref'))
             ->merge([
                 'creator_id' => $this->user()->id ?? null,
                 'status' => $this->has('estimateSend') ? Estimate::STATUS_SENT : Estimate::STATUS_DRAFT,
@@ -149,7 +154,7 @@ class EstimatesRequest extends FormRequest
                 'base_total' => $totals['total'] * $exchange_rate,
                 'base_tax' => $totals['tax'] * $exchange_rate,
                 'currency_id' => $currency,
-            ])
+            ] + $this->externalRefColumns())
             ->toArray();
     }
 }

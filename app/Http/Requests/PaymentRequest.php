@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\CompanySetting;
 use App\Models\Customer;
+use App\Models\Payment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -48,7 +49,21 @@ class PaymentRequest extends FormRequest
             'notes' => [
                 'nullable',
             ],
+            'bank_transaction_id' => [
+                'nullable',
+                'string',
+                'max:191',
+            ],
         ];
+
+        // a replay of the same bank transaction must reach the controller, which answers with the first payment
+        if ($this->isMethod('POST') && $this->filled('bank_transaction_id')) {
+            $firstId = Payment::where('company_id', $this->header('company'))->where('bank_transaction_id', $this->bank_transaction_id)->value('id');
+            $rules['payment_number'] = [
+                'required',
+                Rule::unique('payments')->ignore($firstId)->where('company_id', $this->header('company')),
+            ];
+        }
 
         if ($this->isMethod('PUT')) {
             $rules['payment_number'] = [

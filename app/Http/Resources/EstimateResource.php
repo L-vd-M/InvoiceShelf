@@ -20,6 +20,8 @@ class EstimateResource extends JsonResource
             'expiry_date' => $this->expiry_date,
             'estimate_number' => $this->estimate_number,
             'status' => $this->status,
+            'external_ref' => $this->external_ref,
+            'payment_reference' => $this->estimate_number,
             'reference_number' => $this->reference_number,
             'tax_per_item' => $this->tax_per_item,
             'tax_included' => $this->tax_included,

@@ -19,6 +19,7 @@ class WebhookEndpointsController extends Controller
         return response()->json([
             'data' => WebhookEndpoint::where('company_id', $this->companyId($request))->orderBy('id')->get()
                 ->map(fn (WebhookEndpoint $endpoint) => $this->present($endpoint)),
+            'next_cursor' => null,
         ]);
     }
 
@@ -34,7 +35,7 @@ class WebhookEndpointsController extends Controller
             'enabled' => $data['enabled'] ?? true,
         ]);
 
-        return response()->json(['data' => $this->present($endpoint) + ['secret' => $secret]], 201);
+        return response()->json($this->present($endpoint) + ['secret' => $secret], 201);
     }
 
     public function update(Request $request, WebhookEndpoint $webhookEndpoint): JsonResponse
@@ -42,7 +43,7 @@ class WebhookEndpointsController extends Controller
         $this->authorizeManage($request, $webhookEndpoint);
         $webhookEndpoint->update($this->validated($request, true));
 
-        return response()->json(['data' => $this->present($webhookEndpoint->refresh())]);
+        return response()->json($this->present($webhookEndpoint->refresh()));
     }
 
     public function destroy(Request $request, WebhookEndpoint $webhookEndpoint): JsonResponse
@@ -60,7 +61,7 @@ class WebhookEndpointsController extends Controller
         $secret = WebhookEndpoint::generateSecret();
         $webhookEndpoint->update(['secret' => $secret, 'secret_rotated_at' => now()]);
 
-        return response()->json(['data' => $this->present($webhookEndpoint->refresh()) + ['secret' => $secret]]);
+        return response()->json($this->present($webhookEndpoint->refresh()) + ['secret' => $secret]);
     }
 
     private function validated(Request $request, bool $partial = false): array
@@ -75,7 +76,8 @@ class WebhookEndpointsController extends Controller
             }],
             'description' => ['nullable', 'string', 'max:255'],
             'event_types' => ['nullable', 'array'],
-            'event_types.*' => ['string', Rule::in(OutboxService::TYPES)],
+            'event_types.*' => ['string', Rule::in([...OutboxService::TYPES, '*'])],
+            'catalogue_version' => ['sometimes', 'string', 'max:10'],
             'enabled' => ['sometimes', 'boolean'],
         ]);
     }
@@ -83,7 +85,7 @@ class WebhookEndpointsController extends Controller
     private function present(WebhookEndpoint $endpoint): array
     {
         return [
-            'id' => $endpoint->id,
+            'id' => (string) $endpoint->id,
             'url' => $endpoint->url,
             'description' => $endpoint->description,
             'event_types' => $endpoint->event_types,

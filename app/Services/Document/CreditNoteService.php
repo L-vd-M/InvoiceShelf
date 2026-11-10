@@ -10,6 +10,7 @@ use App\Models\CreditNote;
 use App\Models\CreditNoteItem;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Services\Events\EventData;
 use App\Services\Events\OutboxService;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
@@ -24,9 +25,9 @@ class CreditNoteService
      * everything still creditable. Number, record, invoice balance and credited total change in
      * one transaction.
      */
-    public function create(Invoice $invoice, array $data, ?array $lines, ?int $userId = null): CreditNote
+    public function create(Invoice $invoice, array $data, ?array $lines, ?int $userId = null, ?int $amount = null): CreditNote
     {
-        return DB::transaction(function () use ($invoice, $data, $lines, $userId) {
+        return DB::transaction(function () use ($invoice, $data, $lines, $userId, $amount) {
             // lock the invoice row so two credit notes cannot both spend the same balance
             $invoice = Invoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
 
@@ -34,12 +35,31 @@ class CreditNoteService
                 throw ValidationException::withMessages(['invoice' => ['A draft invoice is edited or deleted, not credited.']]);
             }
 
-            [$lineRows, $subTotal] = $this->priceLines($invoice, $lines);
+            if ($amount !== null) {
+                // credit by amount (integration API): one line, exact total; line quantities are not consumed
+                $subTotal = $invoice->total > 0 ? (int) round($amount * $invoice->sub_total / $invoice->total) : $amount;
+                $lineRows = [[
+                    'invoice_item_id' => null,
+                    'name' => 'Credit',
+                    'description' => $data['reason'] ?? null,
+                    'unit_name' => null,
+                    'quantity' => 1,
+                    'price' => $subTotal,
+                    'discount_val' => 0,
+                    'tax' => $amount - $subTotal,
+                    'total' => $subTotal,
+                ]];
+                $total = $amount;
+                $tax = $amount - $subTotal;
+                $discount = 0;
+            } else {
+                [$lineRows, $subTotal] = $this->priceLines($invoice, $lines);
 
-            $ratio = $invoice->sub_total > 0 ? $subTotal / $invoice->sub_total : 0;
-            $total = (int) round($invoice->total * $ratio);
-            $tax = (int) round($invoice->tax * $ratio);
-            $discount = (int) round(($invoice->discount_val ?? 0) * $ratio);
+                $ratio = $invoice->sub_total > 0 ? $subTotal / $invoice->sub_total : 0;
+                $total = (int) round($invoice->total * $ratio);
+                $tax = (int) round($invoice->tax * $ratio);
+                $discount = (int) round(($invoice->discount_val ?? 0) * $ratio);
+            }
 
             if ($total <= 0) {
                 throw ValidationException::withMessages(['items' => ['Nothing left to credit on this invoice.']]);
@@ -81,7 +101,8 @@ class CreditNoteService
             }
 
             RevisionService::record($creditNote, 'created');
-            RevisionService::record($creditNote, 'issued', ['pdf' => $this->getPdfData($creditNote)->output()]);
+            $pdf = $this->getPdfData($creditNote)->output();
+            RevisionService::record($creditNote, 'issued', ['pdf' => $pdf]);
 
             if ($applied > 0) {
                 $before = $invoice->status;
@@ -95,28 +116,11 @@ class CreditNoteService
             $invoice->credited_total += $total;
             $invoice->save();
 
-            $currency = $invoice->currency?->code;
-            OutboxService::record('document.issued', 'credit_note', $creditNote, $creditNote->credit_note_number, [
-                'document_type' => 'credit_note',
-                'number' => $creditNote->credit_note_number,
-                'invoice_number' => $invoice->invoice_number,
-                'customer_id' => $creditNote->customer_id,
-                'reason_code' => $creditNote->reason_code,
-                'sub_total' => (int) $creditNote->sub_total,
-                'tax' => (int) $creditNote->tax,
-                'total' => (int) $creditNote->total,
-                'currency' => $currency,
-            ]);
+            $invoice->loadMissing('customer', 'currency');
+            OutboxService::record('document.issued', 'credit_note', $creditNote, $creditNote->credit_note_number, EventData::creditNoteIssued($creditNote, $invoice, hash('sha256', $pdf)));
 
             if ($invoice->credited_total >= $invoice->total) {
-                OutboxService::record('document.voided', 'invoice', $invoice, $invoice->invoice_number, [
-                    'document_type' => 'invoice',
-                    'number' => $invoice->invoice_number,
-                    'credit_note_number' => $creditNote->credit_note_number,
-                    'total' => (int) $invoice->total,
-                    'credited_total' => (int) $invoice->credited_total,
-                    'currency' => $currency,
-                ]);
+                OutboxService::record('document.voided', 'invoice', $invoice, $invoice->invoice_number, EventData::invoiceVoided($invoice, $creditNote));
             }
 
             RevisionService::record($invoice, $invoice->credited_total >= $invoice->total ? 'voided' : 'credited', [

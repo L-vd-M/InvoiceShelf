@@ -25,7 +25,7 @@ class WebhookEndpoint extends Model
 
     public function wants(string $type): bool
     {
-        return $this->enabled && (empty($this->event_types) || in_array($type, $this->event_types, true));
+        return $this->enabled && (empty($this->event_types) || in_array('*', $this->event_types, true) || in_array($type, $this->event_types, true));
     }
 
     public function deliveries(): HasMany

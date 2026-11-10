@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\HasExternalRefInput;
 use App\Models\Address;
 use App\Rules\IdnEmail;
 use Illuminate\Foundation\Http\FormRequest;
@@ -10,6 +11,8 @@ use Illuminate\Validation\Rule;
 
 class CustomerRequest extends FormRequest
 {
+    use HasExternalRefInput;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -133,7 +136,7 @@ class CustomerRequest extends FormRequest
             ];
         }
 
-        return $rules;
+        return $rules + $this->externalRefRules('customers', $this->route('customer')?->id);
     }
 
     public function getCustomerPayload()
@@ -161,7 +164,7 @@ class CustomerRequest extends FormRequest
             ->merge([
                 'creator_id' => $this->user()->id,
                 'company_id' => $this->header('company'),
-            ])
+            ] + $this->externalRefColumns())
             ->toArray();
     }
 
