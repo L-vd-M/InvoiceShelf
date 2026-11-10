@@ -1,0 +1,94 @@
+{
+  "openapi": "3.1.0",
+  "paths": {
+    "/estimates": {
+      "get": {
+        "operationId": "listEstimates"
+      },
+      "post": {
+        "operationId": "createEstimate"
+      }
+    },
+    "/estimates/{id}": {
+      "get": {
+        "operationId": "getEstimate"
+      }
+    },
+    "/estimates/{id}/accept": {
+      "post": {
+        "operationId": "acceptEstimate"
+      }
+    },
+    "/invoices": {
+      "get": {
+        "operationId": "listInvoices"
+      },
+      "post": {
+        "operationId": "createInvoice"
+      }
+    },
+    "/invoices/{id}": {
+      "get": {
+        "operationId": "getInvoice"
+      }
+    },
+    "/invoices/{id}/issue": {
+      "post": {
+        "operationId": "issueInvoice"
+      }
+    },
+    "/invoices/{id}/pdf": {
+      "get": {
+        "operationId": "invoicePdf"
+      }
+    },
+    "/invoices/{id}/credit-notes": {
+      "post": {
+        "operationId": "createCreditNote"
+      }
+    },
+    "/credit-notes/{id}/issue": {
+      "post": {
+        "operationId": "issueCreditNote"
+      }
+    },
+    "/payments": {
+      "post": {
+        "operationId": "createPayment"
+      }
+    },
+    "/webhook-endpoints": {
+      "get": {
+        "operationId": "listWebhookEndpoints"
+      },
+      "post": {
+        "operationId": "createWebhookEndpoint"
+      }
+    },
+    "/webhook-deliveries": {
+      "get": {
+        "operationId": "listWebhookDeliveries"
+      }
+    },
+    "/webhook-deliveries/{id}/retry": {
+      "post": {
+        "operationId": "retryWebhookDelivery"
+      }
+    },
+    "/events": {
+      "get": {
+        "operationId": "listEvents"
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health"
+      }
+    },
+    "/version": {
+      "get": {
+        "operationId": "version"
+      }
+    }
+  }
+}

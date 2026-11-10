@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\OutboxEvent;
 use App\Models\WebhookDelivery;
+use App\Support\Problem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ class HealthController extends Controller
             DB::select('select 1');
             $checks['database'] = ['ok' => true];
         } catch (Throwable $e) {
-            return response()->json(['status' => 'down', 'database' => ['ok' => false]], 503);
+            return Problem::response(503, 'database_down', 'Database unavailable', null, ['status' => 'down', 'database' => ['ok' => false]]);
         }
 
         $queueDriver = config('queue.default');

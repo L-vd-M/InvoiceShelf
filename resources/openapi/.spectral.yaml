@@ -1,0 +1,12 @@
+# Lint: npx @stoplight/spectral-cli lint tests/contracts/openapi/*.yaml --ruleset tests/contracts/openapi/.spectral.yaml
+extends: ["spectral:oas"]
+rules:
+  operation-operationId: error
+  operation-description: off
+  info-contact: off
+  oas3-api-servers: error
+  tarcza-problem-json:
+    description: error responses use RFC 9457 media type
+    severity: warn
+    given: "$.paths[*][*].responses[?(@property >= '400')].content"
+    then: {field: application/problem+json, function: truthy}
