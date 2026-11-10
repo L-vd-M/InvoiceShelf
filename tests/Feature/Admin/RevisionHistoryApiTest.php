@@ -104,7 +104,7 @@ test('diff against previous reports the header and line changes', function () {
     $id = ($this->draft)();
     $payload = ($this->payload)();
     $payload['notes'] = 'v2';
-    $payload['items'][0]['quantity'] = 7;
+    $payload['items'][0]['quantity'] = 42;
     putJson("api/v1/invoices/{$id}", $payload)->assertOk();
 
     $edited = DocumentRevision::where('document_id', $id)->where('document_type', 'invoice')->where('revision_no', 2)->first();
