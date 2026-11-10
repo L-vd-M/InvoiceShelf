@@ -9,6 +9,7 @@ use App\Models\CompanySetting;
 use App\Models\Customer;
 use App\Models\EmailLog;
 use App\Models\Invoice;
+use App\Services\Document\RevisionService;
 use Illuminate\Http\Request;
 
 class InvoicePdfController extends Controller
@@ -26,6 +27,7 @@ class InvoicePdfController extends Controller
             $invoice->status = Invoice::STATUS_VIEWED;
             $invoice->viewed = true;
             $invoice->save();
+            RevisionService::record($invoice, 'viewed', ['source' => 'customer_portal', 'actor_user_id' => null]);
             $notifyInvoiceViewed = CompanySetting::getSetting(
                 'notify_invoice_viewed',
                 $invoice->company_id

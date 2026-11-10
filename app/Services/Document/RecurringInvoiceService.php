@@ -185,6 +185,8 @@ class RecurringInvoiceService
             $invoice->addCustomFields($customField);
         }
 
+        RevisionService::record($invoice, 'created');
+
         if ($recurringInvoice->send_automatically == true) {
             $data = [
                 'body' => CompanySetting::getSetting('invoice_mail_body', $recurringInvoice->company_id),

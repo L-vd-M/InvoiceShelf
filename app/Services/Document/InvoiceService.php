@@ -69,6 +69,8 @@ class InvoiceService
             $invoice->addCustomFields($request->customFields);
         }
 
+        RevisionService::record($invoice, 'created');
+
         if ($data['status'] === Invoice::STATUS_SENT) {
             $this->issue($invoice);
         }
@@ -129,6 +131,8 @@ class InvoiceService
                 'estimate_id' => $locked->estimate_id ?? null,
             ]);
 
+            RevisionService::record($locked, 'issued');
+
             return $locked;
         });
 
@@ -139,6 +143,11 @@ class InvoiceService
      * @throws ValidationException
      */
     public function update(Invoice $invoice, Request $request): Invoice
+    {
+        return DB::transaction(fn () => $this->updateInTransaction($invoice, $request));
+    }
+
+    private function updateInTransaction(Invoice $invoice, Request $request): Invoice
     {
         if ($invoice->isIssued()) {
             throw new DocumentImmutableException('edited', $invoice->invoice_number);
@@ -209,6 +218,8 @@ class InvoiceService
         if ($request->customFields) {
             $invoice->updateCustomFields($request->customFields);
         }
+
+        RevisionService::record($invoice, 'edited', ['skip_if_unchanged' => true]);
 
         return Invoice::with([
             'items',
@@ -292,6 +303,8 @@ class InvoiceService
             $invoice->sent = true;
             $invoice->save();
         }
+
+        RevisionService::record($invoice, 'sent');
 
         return [
             'success' => true,
@@ -477,6 +490,8 @@ class InvoiceService
             $newInvoice->addCustomFields($customFields);
         }
 
+        RevisionService::record($newInvoice, 'created');
+
         return $newInvoice;
     }
 
@@ -544,6 +559,8 @@ class InvoiceService
 
             $estimate->addCustomFields($customFields);
         }
+
+        RevisionService::record($estimate, 'created');
 
         return $estimate;
     }

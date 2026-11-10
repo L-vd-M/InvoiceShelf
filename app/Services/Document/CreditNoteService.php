@@ -80,6 +80,9 @@ class CreditNoteService
                 CreditNoteItem::create($row + ['credit_note_id' => $creditNote->id, 'company_id' => $invoice->company_id]);
             }
 
+            RevisionService::record($creditNote, 'created');
+            RevisionService::record($creditNote, 'issued');
+
             if ($applied > 0) {
                 $before = $invoice->status;
                 $invoice->subtractInvoicePayment($applied);
@@ -115,6 +118,10 @@ class CreditNoteService
                     'currency' => $currency,
                 ]);
             }
+
+            RevisionService::record($invoice, $invoice->credited_total >= $invoice->total ? 'voided' : 'credited', [
+                'note' => 'Credit note '.$creditNote->credit_note_number,
+            ]);
 
             return $creditNote->load('items', 'invoice', 'customer');
         });
