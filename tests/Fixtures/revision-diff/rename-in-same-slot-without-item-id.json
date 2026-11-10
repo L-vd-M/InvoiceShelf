@@ -1,0 +1,29 @@
+{
+  "before": {
+    "items": [
+      {
+        "name": "Cable",
+        "quantity": "1",
+        "price": 10000
+      }
+    ]
+  },
+  "after": {
+    "items": [
+      {
+        "name": "Long cable",
+        "quantity": "1",
+        "price": 10000
+      }
+    ]
+  },
+  "expected": [
+    {
+      "kind": "description_changed",
+      "path": "items[0].name",
+      "line": "Long cable",
+      "before": "Cable",
+      "after": "Long cable"
+    }
+  ]
+}

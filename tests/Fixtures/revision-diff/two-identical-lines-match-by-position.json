@@ -1,0 +1,39 @@
+{
+  "before": {
+    "items": [
+      {
+        "name": "Cable",
+        "quantity": "1",
+        "price": 10000
+      },
+      {
+        "name": "Cable",
+        "quantity": "1",
+        "price": 10000
+      }
+    ]
+  },
+  "after": {
+    "items": [
+      {
+        "name": "Cable",
+        "quantity": "1",
+        "price": 10000
+      },
+      {
+        "name": "Cable",
+        "quantity": "4",
+        "price": 10000
+      }
+    ]
+  },
+  "expected": [
+    {
+      "kind": "quantity_changed",
+      "path": "items[1].quantity",
+      "line": "Cable",
+      "before": "1",
+      "after": "4"
+    }
+  ]
+}

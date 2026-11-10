@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\Document\RevisionService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use LogicException;
 
 /**
@@ -27,6 +28,11 @@ class DocumentRevision extends Model
     {
         static::updating(fn () => throw new LogicException('Document revisions are append-only.'));
         static::deleting(fn () => throw new LogicException('Document revisions are append-only.'));
+    }
+
+    public function actor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'actor_user_id');
     }
 
     /**

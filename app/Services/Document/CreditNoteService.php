@@ -81,7 +81,7 @@ class CreditNoteService
             }
 
             RevisionService::record($creditNote, 'created');
-            RevisionService::record($creditNote, 'issued');
+            RevisionService::record($creditNote, 'issued', ['pdf' => $this->getPdfData($creditNote)->output()]);
 
             if ($applied > 0) {
                 $before = $invoice->status;

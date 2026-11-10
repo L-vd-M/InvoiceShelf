@@ -1,0 +1,75 @@
+{
+  "before": {
+    "tax": 0,
+    "total": 10000,
+    "taxes": [],
+    "items": [
+      {
+        "invoice_item_id": 6,
+        "name": "Cable",
+        "quantity": "1",
+        "price": 10000,
+        "total": 10000,
+        "tax": 0,
+        "taxes": []
+      }
+    ]
+  },
+  "after": {
+    "tax": 1500,
+    "total": 11500,
+    "taxes": [
+      {
+        "tax_type_id": 1,
+        "name": "VAT",
+        "percent": "15",
+        "amount": 1500
+      }
+    ],
+    "items": [
+      {
+        "invoice_item_id": 6,
+        "name": "Cable",
+        "quantity": "1",
+        "price": 10000,
+        "total": 10000,
+        "tax": 1500,
+        "taxes": [
+          {
+            "tax_type_id": 1,
+            "name": "VAT",
+            "percent": "15",
+            "amount": 1500
+          }
+        ]
+      }
+    ]
+  },
+  "expected": [
+    {
+      "kind": "header_changed",
+      "path": "tax",
+      "before": 0,
+      "after": 1500
+    },
+    {
+      "kind": "header_changed",
+      "path": "total",
+      "before": 10000,
+      "after": 11500
+    },
+    {
+      "kind": "tax_changed",
+      "path": "taxes",
+      "before": "",
+      "after": "VAT 15%"
+    },
+    {
+      "kind": "tax_changed",
+      "path": "items[0].tax",
+      "line": "Cable",
+      "before": "",
+      "after": "VAT 15%"
+    }
+  ]
+}

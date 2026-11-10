@@ -1,0 +1,53 @@
+{
+  "before": {
+    "items": [
+      {
+        "invoice_item_id": 5,
+        "name": "Screen mount",
+        "quantity": "2",
+        "price": 10000,
+        "total": 20000,
+        "discount_type": "fixed",
+        "discount": "0",
+        "discount_val": 0
+      }
+    ]
+  },
+  "after": {
+    "items": [
+      {
+        "invoice_item_id": 5,
+        "name": "Screen mount",
+        "quantity": "2",
+        "price": 10000,
+        "total": 18000,
+        "discount_type": "percentage",
+        "discount": "10",
+        "discount_val": 2000
+      }
+    ]
+  },
+  "expected": [
+    {
+      "kind": "discount_changed",
+      "path": "items[0].discount",
+      "line": "Screen mount",
+      "before": "0",
+      "after": "10"
+    },
+    {
+      "kind": "discount_changed",
+      "path": "items[0].discount_type",
+      "line": "Screen mount",
+      "before": "fixed",
+      "after": "percentage"
+    },
+    {
+      "kind": "discount_changed",
+      "path": "items[0].discount_val",
+      "line": "Screen mount",
+      "before": 0,
+      "after": 2000
+    }
+  ]
+}

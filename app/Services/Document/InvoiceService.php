@@ -131,7 +131,7 @@ class InvoiceService
                 'estimate_id' => $locked->estimate_id ?? null,
             ]);
 
-            RevisionService::record($locked, 'issued');
+            RevisionService::record($locked, 'issued', ['pdf' => $locked->fresh()->getPDFData()->output()]);
 
             return $locked;
         });
@@ -287,6 +287,10 @@ class InvoiceService
 
         $data = $this->sendInvoiceData($invoice, $data);
 
+        // render once: the attachment and the revision hash are the same bytes (with attachments off, the customer opens the portal link and the revision keeps the rendered file)
+        $pdf = ($data['attach']['data'] ?? $invoice->getPDFData())->output();
+        $data['attach']['bytes'] = $pdf;
+
         CompanyMailConfigService::apply($invoice->company_id);
 
         $mail = \Mail::to($data['to']);
@@ -304,7 +308,7 @@ class InvoiceService
             $invoice->save();
         }
 
-        RevisionService::record($invoice, 'sent');
+        RevisionService::record($invoice, 'sent', ['pdf' => $pdf]);
 
         return [
             'success' => true,
