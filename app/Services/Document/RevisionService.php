@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 
 /**
@@ -21,6 +22,8 @@ use InvalidArgumentException;
 class RevisionService
 {
     public const REASONS = ['created', 'edited', 'sent', 'viewed', 'accepted', 'rejected', 'expired', 'converted', 'issued', 'credited', 'voided'];
+
+    public const PDF_DISK = 'local';
 
     public const SOURCES = ['ui', 'api', 'customer_portal', 'system'];
 
@@ -61,7 +64,7 @@ class RevisionService
     private const TAX = ['tax_type_id' => 'int', 'name' => 'str', 'percent' => 'num', 'amount' => 'int', 'compound_tax' => 'int'];
 
     /**
-     * @param  array{note?: ?string, source?: string, actor_user_id?: ?int, skip_if_unchanged?: bool, pdf_sha256?: ?string, created_at?: mixed}  $options
+     * @param  array{note?: ?string, source?: string, actor_user_id?: ?int, skip_if_unchanged?: bool, pdf?: ?string, created_at?: mixed}  $options
      * @return ?DocumentRevision null when skip_if_unchanged is set and nothing business-relevant changed
      */
     public static function record(Model $document, string $reason, array $options = []): ?DocumentRevision
@@ -115,18 +118,25 @@ class RevisionService
             $actorRole = $user instanceof User ? self::actorRole($user) : null;
         }
 
+        $revisionNo = ($previous?->revision_no ?? 0) + 1;
+        $pdf = $options['pdf'] ?? null;
+
+        if ($pdf !== null) {
+            Storage::disk(self::PDF_DISK)->put(self::pdfPathFor($row->company_id, $type, $row->getKey(), $revisionNo), $pdf);
+        }
+
         $attributes = [
             'company_id' => $row->company_id,
             'document_type' => $type,
             'document_id' => $row->getKey(),
-            'revision_no' => ($previous?->revision_no ?? 0) + 1,
+            'revision_no' => $revisionNo,
             'reason_code' => $reason,
             'note' => $options['note'] ?? null,
             'status' => $row->status,
             'snapshot' => $snapshot,
             'totals_hash' => $hash,
             'diff_from_previous' => $previous ? self::diff($previous->snapshot, $snapshot) : null,
-            'pdf_sha256' => $options['pdf_sha256'] ?? null,
+            'pdf_sha256' => $pdf !== null ? hash('sha256', $pdf) : null,
             'actor_user_id' => $actorId,
             'actor_role' => $actorRole,
             'source' => $source,
@@ -203,27 +213,31 @@ class RevisionService
         return hash('sha256', json_encode(self::canonical($snapshot), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
     }
 
+    public static function pdfPathFor(int $companyId, string $type, int $documentId, int $revisionNo): string
+    {
+        return "revisions/{$companyId}/{$type}/{$documentId}/{$revisionNo}.pdf";
+    }
+
     /**
-     * Changed paths between two snapshots as [{path, before, after}]. Lines are matched by position;
-     * V2 replaces this with the line-aware diff service.
+     * The exact PDF stored with an issued or sent revision, or null when none was kept.
+     */
+    public static function storedPdf(DocumentRevision $revision): ?string
+    {
+        if ($revision->pdf_sha256 === null) {
+            return null;
+        }
+
+        $path = self::pdfPathFor($revision->company_id, $revision->document_type, $revision->document_id, $revision->revision_no);
+
+        return Storage::disk(self::PDF_DISK)->exists($path) ? Storage::disk(self::PDF_DISK)->get($path) : null;
+    }
+
+    /**
+     * Structured changes between two snapshots (see RevisionDiffService).
      */
     public static function diff(array $before, array $after): array
     {
-        $old = self::flatten($before);
-        $new = self::flatten($after);
-
-        $changes = [];
-        foreach (array_unique([...array_keys($old), ...array_keys($new)]) as $path) {
-            $a = $old[$path] ?? null;
-            $b = $new[$path] ?? null;
-            if ($a !== $b) {
-                $changes[] = ['path' => $path, 'before' => $a, 'after' => $b];
-            }
-        }
-
-        usort($changes, fn ($x, $y) => strcmp($x['path'], $y['path']));
-
-        return $changes;
+        return RevisionDiffService::diff($before, $after);
     }
 
     private static function typeOf(Model $document): string
@@ -302,22 +316,5 @@ class RevisionService
         ksort($value);
 
         return array_map(self::canonical(...), $value);
-    }
-
-    private static function flatten(array $data, string $prefix = ''): array
-    {
-        $out = [];
-
-        foreach ($data as $key => $value) {
-            $path = $prefix === '' ? (string) $key : $prefix.(is_int($key) ? "[{$key}]" : ".{$key}");
-
-            if (is_array($value) && $value !== []) {
-                $out += self::flatten($value, $path);
-            } else {
-                $out[$path] = $value;
-            }
-        }
-
-        return $out;
     }
 }

@@ -56,6 +56,7 @@ use App\Http\Controllers\Company\Payment\PaymentMethodsController;
 use App\Http\Controllers\Company\Payment\PaymentsController;
 use App\Http\Controllers\Company\RecurringInvoice\RecurringInvoiceController;
 use App\Http\Controllers\Company\RecurringInvoice\RecurringInvoiceFrequencyController;
+use App\Http\Controllers\Company\Revision\RevisionsController;
 use App\Http\Controllers\Company\Role\AbilitiesController;
 use App\Http\Controllers\Company\Role\RolesController;
 use App\Http\Controllers\Company\Settings\CompanyAiConfigurationController;
@@ -308,6 +309,21 @@ Route::prefix('/v1')->group(function () {
             Route::get('/invoices/templates', InvoiceTemplatesController::class);
 
             Route::apiResource('invoices', InvoicesController::class);
+
+            // Revision history (read-only)
+            // -------------------------------------------------
+
+            Route::get('/invoices/{invoice}/revisions', [RevisionsController::class, 'invoice']);
+
+            Route::get('/estimates/{estimate}/revisions', [RevisionsController::class, 'estimate']);
+
+            Route::get('/credit-notes/{creditNote}/revisions', [RevisionsController::class, 'creditNote']);
+
+            Route::get('/revisions/{revision}', [RevisionsController::class, 'show']);
+
+            Route::get('/revisions/{revision}/diff', [RevisionsController::class, 'diff']);
+
+            Route::get('/revisions/{revision}/pdf', [RevisionsController::class, 'pdf']);
 
             Route::get('/invoices/{invoice}/creditable', [CreditNotesController::class, 'creditable']);
 

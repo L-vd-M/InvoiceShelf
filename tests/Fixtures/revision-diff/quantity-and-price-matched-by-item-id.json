@@ -1,0 +1,40 @@
+{
+  "before": {
+    "items": [
+      {
+        "invoice_item_id": 5,
+        "name": "Screen mount",
+        "quantity": "2",
+        "price": 10000,
+        "total": 20000
+      }
+    ]
+  },
+  "after": {
+    "items": [
+      {
+        "invoice_item_id": 5,
+        "name": "Screen mount",
+        "quantity": "3",
+        "price": 12000,
+        "total": 36000
+      }
+    ]
+  },
+  "expected": [
+    {
+      "kind": "unit_price_changed",
+      "path": "items[0].price",
+      "line": "Screen mount",
+      "before": 10000,
+      "after": 12000
+    },
+    {
+      "kind": "quantity_changed",
+      "path": "items[0].quantity",
+      "line": "Screen mount",
+      "before": "2",
+      "after": "3"
+    }
+  ]
+}

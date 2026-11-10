@@ -19,7 +19,6 @@
     "documents": "Documents",
     "admin": "Administration",
     "administration": "Administration",
-    "companies": "Companies",
     "all_users": "Users"
   },
   "general": {
@@ -1991,6 +1990,46 @@
       "regenerate": "Regenerate",
       "insert": "Insert",
       "replace": "Replace"
+    }
+  },
+  "revisions": {
+    "document": "Document",
+    "history": "History",
+    "loading": "Loading...",
+    "none": "No history yet",
+    "changes": "{count} change | {count} changes",
+    "show_changes": "Show changes",
+    "hide_changes": "Hide changes",
+    "open_pdf": "Open stored PDF",
+    "reasons": {
+      "created": "Created",
+      "edited": "Edited",
+      "sent": "Sent",
+      "viewed": "Viewed by customer",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "expired": "Expired",
+      "converted": "Converted to invoice",
+      "issued": "Issued",
+      "credited": "Credited",
+      "voided": "Voided by credit note"
+    },
+    "kinds": {
+      "header_changed": "Field",
+      "line_added": "Line added",
+      "line_removed": "Line removed",
+      "quantity_changed": "Quantity",
+      "unit_price_changed": "Unit price",
+      "discount_changed": "Discount",
+      "description_changed": "Description",
+      "tax_changed": "Tax",
+      "line_changed": "Line"
+    },
+    "sources": {
+      "ui": "User",
+      "api": "API",
+      "customer_portal": "Customer",
+      "system": "System"
     }
   }
 }

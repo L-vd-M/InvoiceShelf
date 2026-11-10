@@ -153,6 +153,10 @@ class EstimateService
     {
         $data = $this->sendEstimateData($estimate, $data);
 
+        // render once: the attachment and the revision hash are the same bytes (with attachments off, the customer opens the portal link and the revision keeps the rendered file)
+        $pdf = ($data['attach']['data'] ?? $estimate->getPDFData())->output();
+        $data['attach']['bytes'] = $pdf;
+
         CompanyMailConfigService::apply($estimate->company_id);
 
         if ($estimate->status == Estimate::STATUS_DRAFT) {
@@ -169,7 +173,7 @@ class EstimateService
         }
         $mail->send(new SendEstimateMail($data));
 
-        RevisionService::record($estimate, 'sent');
+        RevisionService::record($estimate, 'sent', ['pdf' => $pdf]);
 
         return [
             'success' => true,

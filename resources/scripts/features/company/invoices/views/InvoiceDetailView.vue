@@ -226,8 +226,31 @@
       </div>
     </div>
 
-    <!-- PDF Preview -->
-    <BasePdfPreview :src="shareableLink" />
+    <!-- Document / History -->
+    <div class="flex mt-8 border-b border-line-default">
+      <button
+        v-for="name in (['document', 'history'] as const)"
+        :key="name"
+        type="button"
+        :class="[
+          'px-4 py-2 -mb-px text-sm font-medium border-b-2',
+          detailTab === name
+            ? 'border-primary-500 text-primary-500'
+            : 'border-transparent text-muted hover:text-heading',
+        ]"
+        @click="detailTab = name"
+      >
+        {{ $t('revisions.' + name) }}
+      </button>
+    </div>
+
+    <BasePdfPreview v-show="detailTab === 'document'" :src="shareableLink" />
+    <DocumentHistory
+      v-if="detailTab === 'history'"
+      :key="invoiceData.id"
+      type="invoice"
+      :document-id="invoiceData.id"
+    />
 
     <SendInvoiceModal />
     <CreateCreditNoteModal />
@@ -244,6 +267,7 @@ import InvoiceDropdown from '../components/InvoiceDropdown.vue'
 import SendInvoiceModal from '../components/SendInvoiceModal.vue'
 import CreateCreditNoteModal from '../components/CreateCreditNoteModal.vue'
 import LoadingIcon from '@/scripts/components/icons/LoadingIcon.vue'
+import DocumentHistory from '@/scripts/features/shared/document-history/DocumentHistory.vue'
 import { useUserStore } from '../../../../stores/user.store'
 import { useDialogStore } from '../../../../stores/dialog.store'
 import { useModalStore } from '../../../../stores/modal.store'
@@ -315,6 +339,7 @@ const canCreateEstimate = computed<boolean>(() => {
   return userStore.hasAbilities('create-estimate')
 })
 
+const detailTab = ref<'document' | 'history'>('document')
 const invoiceData = ref<Invoice | null>(null)
 const isMarkAsSent = ref<boolean>(false)
 const isLoading = ref<boolean>(false)

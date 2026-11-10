@@ -1,0 +1,38 @@
+{
+  "before": {
+    "notes": "a",
+    "total": 30000,
+    "customer": {
+      "id": 1,
+      "name": "Acme"
+    }
+  },
+  "after": {
+    "notes": "b",
+    "total": 27000,
+    "customer": {
+      "id": 2,
+      "name": "Beta"
+    }
+  },
+  "expected": [
+    {
+      "kind": "header_changed",
+      "path": "customer",
+      "before": "Acme",
+      "after": "Beta"
+    },
+    {
+      "kind": "header_changed",
+      "path": "notes",
+      "before": "a",
+      "after": "b"
+    },
+    {
+      "kind": "header_changed",
+      "path": "total",
+      "before": 30000,
+      "after": 27000
+    }
+  ]
+}
