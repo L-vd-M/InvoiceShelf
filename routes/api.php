@@ -30,6 +30,7 @@ use App\Http\Controllers\Company\Customer\CustomersController;
 use App\Http\Controllers\Company\Customer\CustomerStatsController;
 use App\Http\Controllers\Company\CustomField\CustomFieldsController;
 use App\Http\Controllers\Company\Dashboard\DashboardController;
+use App\Http\Controllers\Company\Deal\DealsController;
 use App\Http\Controllers\Company\Estimate\EstimatesController;
 use App\Http\Controllers\Company\Estimate\EstimateTemplatesController;
 use App\Http\Controllers\Company\Events\EventsFeedController;
@@ -377,6 +378,17 @@ Route::prefix('/v1')->group(function () {
             Route::post('/estimates/{estimate}/convert-to-invoice', [EstimatesController::class, 'convertToInvoice']);
 
             Route::post('/estimates/{estimate}/issue-invoice', [EstimatesController::class, 'issueInvoice']);
+
+            // Deal outcome (spec 07)
+            Route::get('/estimates/{estimate}/lifecycle', [DealsController::class, 'lifecycle']);
+
+            Route::post('/estimates/{estimate}/lost', [DealsController::class, 'lost']);
+
+            Route::post('/estimates/{estimate}/assign', [DealsController::class, 'assign']);
+
+            Route::get('/deal-lost-reasons', [DealsController::class, 'lostReasons']);
+
+            Route::get('/deal-owners', [DealsController::class, 'owners']);
 
             Route::get('/estimates/templates', EstimateTemplatesController::class);
 

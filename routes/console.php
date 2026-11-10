@@ -25,6 +25,10 @@ if (InstallUtils::isDbCreated()) {
     Schedule::command('check:estimates:status')
         ->daily();
 
+    // after the expiry run, so quotes that just expired get their outcome
+    Schedule::command('deals:rebuild')
+        ->dailyAt('03:00');
+
     $recurringInvoices = RecurringInvoice::where('status', 'ACTIVE')->get();
     foreach ($recurringInvoices as $recurringInvoice) {
         $timeZone = CompanySetting::getSetting('time_zone', $recurringInvoice->company_id);

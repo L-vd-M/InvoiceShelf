@@ -21,7 +21,7 @@ use InvalidArgumentException;
  */
 class RevisionService
 {
-    public const REASONS = ['created', 'edited', 'sent', 'viewed', 'accepted', 'rejected', 'expired', 'converted', 'issued', 'credited', 'voided'];
+    public const REASONS = ['created', 'edited', 'sent', 'viewed', 'accepted', 'rejected', 'expired', 'converted', 'issued', 'credited', 'voided', 'lost', 'assigned'];
 
     public const PDF_DISK = 'local';
 
@@ -55,6 +55,11 @@ class RevisionService
         ],
     ];
 
+    // Written to the snapshot only when set, so quotes without a deal decision keep the hash they already have
+    private const OPTIONAL = [
+        'estimate' => ['owner_user_id' => 'int', 'lost_reason' => 'str', 'lost_at' => 'ts'],
+    ];
+
     // Line ids are left out on purpose: lines are deleted and recreated on every edit, so ids would make every save look changed.
     private const ITEM = [
         'invoice_item_id' => 'int', 'name' => 'str', 'description' => 'str', 'unit_name' => 'str', 'quantity' => 'num',
@@ -78,7 +83,13 @@ class RevisionService
 
         for ($try = 1; ; $try++) {
             try {
-                return self::write($document, $reason, $options);
+                $revision = self::write($document, $reason, $options);
+
+                if ($revision) {
+                    self::syncDeal($document);
+                }
+
+                return $revision;
             } catch (UniqueConstraintViolationException $e) {
                 if ($try >= $attempts) {
                     throw $e;
@@ -186,6 +197,12 @@ class RevisionService
             'customer' => $document->customer ? ['id' => (int) $document->customer->id, 'name' => $document->customer->name] : null,
         ];
 
+        foreach (self::pick($document, self::OPTIONAL[$type] ?? []) as $key => $value) {
+            if ($value !== null) {
+                $snapshot[$key] = $value;
+            }
+        }
+
         if ($type === 'credit_note') {
             $items = $document->items()->orderBy('id')->get();
         } else {
@@ -238,6 +255,18 @@ class RevisionService
     public static function diff(array $before, array $after): array
     {
         return RevisionDiffService::diff($before, $after);
+    }
+
+    /**
+     * Keep the deal lifecycle row of a quote current: on a quote revision, and on a revision of the invoice made from it.
+     */
+    private static function syncDeal(Model $document): void
+    {
+        if ($document instanceof Estimate) {
+            DealLifecycleService::sync($document);
+        } elseif ($document instanceof Invoice && $document->estimate_id) {
+            DealLifecycleService::syncForInvoice($document->getKey());
+        }
     }
 
     private static function typeOf(Model $document): string

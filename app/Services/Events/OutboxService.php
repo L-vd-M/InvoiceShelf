@@ -16,6 +16,9 @@ class OutboxService
         'document.deleted',
         'quote.accepted',
         'payment.recorded',
+        'document.revised',
+        'deal.won',
+        'deal.lost',
     ];
 
     /**

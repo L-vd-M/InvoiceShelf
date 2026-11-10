@@ -128,6 +128,27 @@
       {{ $t('estimates.mark_as_accepted') }}
     </BaseDropdownItem>
 
+    <!-- Mark as Lost (records the reason for sales reports) -->
+    <BaseDropdownItem
+      v-if="row.status !== 'ACCEPTED' && canEdit"
+      @click="showLostModal = true"
+    >
+      <BaseIcon
+        name="XCircleIcon"
+        class="w-5 h-5 mr-3 text-subtle group-hover:text-muted"
+      />
+      {{ $t('estimates.mark_as_lost') }}
+    </BaseDropdownItem>
+
+    <!-- Assign owner -->
+    <BaseDropdownItem v-if="canEdit" @click="showAssignModal = true">
+      <BaseIcon
+        name="UserIcon"
+        class="w-5 h-5 mr-3 text-subtle group-hover:text-muted"
+      />
+      {{ $t('estimates.assign_owner') }}
+    </BaseDropdownItem>
+
     <!-- Mark as Rejected -->
     <BaseDropdownItem
       v-if="row.status !== 'REJECTED' && row.status !== 'ACCEPTED' && canEdit"
@@ -146,6 +167,20 @@
     :estimate="row"
     @close="showIssueModal = false"
   />
+
+  <EstimateLostModal
+    :show="showLostModal"
+    :estimate="row"
+    @close="showLostModal = false"
+    @updated="onDealUpdated"
+  />
+
+  <EstimateAssignModal
+    :show="showAssignModal"
+    :estimate="row"
+    @close="showAssignModal = false"
+    @updated="onDealUpdated"
+  />
 </template>
 
 <script setup lang="ts">
@@ -158,6 +193,8 @@ import { useModalStore } from '../../../../stores/modal.store'
 import { useNotificationStore } from '../../../../stores/notification.store'
 import type { Estimate } from '../../../../types/domain/estimate'
 import EstimateIssueInvoiceModal from './EstimateIssueInvoiceModal.vue'
+import EstimateLostModal from './EstimateLostModal.vue'
+import EstimateAssignModal from './EstimateAssignModal.vue'
 
 interface TableRef {
   refresh: () => void
@@ -192,7 +229,16 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
+const emit = defineEmits<{ (e: 'updated'): void }>()
+
 const showIssueModal = ref(false)
+const showLostModal = ref(false)
+const showAssignModal = ref(false)
+
+function onDealUpdated(): void {
+  props.table?.refresh()
+  emit('updated')
+}
 
 const isDetailView = computed<boolean>(() => route.name === 'estimates.view')
 

@@ -66,6 +66,7 @@ class Estimate extends Model implements HasMedia
             'discount' => 'float',
             'discount_val' => 'integer',
             'exchange_rate' => 'float',
+            'lost_at' => 'datetime',
         ];
     }
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Jobs\GeneratePaymentPdfJob;
+use App\Services\Document\DealLifecycleService;
 use App\Services\Document\PaymentService;
 use App\Support\Pdf\PdfHtmlSanitizer;
 use App\Support\SafeOrderBy;
@@ -50,6 +51,10 @@ class Payment extends Model implements HasMedia
         static::updated(function ($payment) {
             GeneratePaymentPdfJob::dispatch($payment, true);
         });
+
+        // payments move first_paid_at and fully_paid_at of the deal behind the invoice's quote
+        static::saved(fn ($payment) => DealLifecycleService::syncForInvoice($payment->invoice_id));
+        static::deleted(fn ($payment) => DealLifecycleService::syncForInvoice($payment->invoice_id));
     }
 
     public function setSettingsAttribute($value)

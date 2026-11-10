@@ -407,6 +407,46 @@
     "add_new_tax": "Add New Tax",
     "no_estimates": "No estimates yet!",
     "list_of_estimates": "This section will contain the list of estimates.",
+    "mark_as_lost": "Mark as lost",
+    "assign_owner": "Assign owner",
+    "lost_reason": "Why was the deal lost?",
+    "lost_note": "Note (optional)",
+    "lost_description": "The quote is closed as lost. Pick the reason so sales reports can use it.",
+    "lost_reasons": {
+      "price": "Price",
+      "timing": "Timing",
+      "competitor": "Went with a competitor",
+      "no_response": "No response",
+      "other": "Other"
+    },
+    "deal_marked_lost": "Quote marked as lost",
+    "owner": "Owner",
+    "select_owner": "Select a salesperson",
+    "owner_changed": "Owner changed",
+    "deal": {
+      "title": "Deal",
+      "outcome": "Outcome",
+      "outcomes": {
+        "open": "Open",
+        "won": "Won",
+        "lost": "Lost",
+        "expired": "Expired"
+      },
+      "owner": "Owner",
+      "team": "Team",
+      "lost_reason": "Loss reason",
+      "first_sent": "First sent",
+      "accepted": "Accepted",
+      "invoiced": "Invoiced",
+      "first_paid": "First payment",
+      "fully_paid": "Fully paid",
+      "edits_after_send": "Edits after sending",
+      "price_changes": "of which price changes",
+      "first_total": "Total when first sent",
+      "final_total": "Final total",
+      "discount": "Change first to final",
+      "not_yet": "Not yet"
+    },
     "mark_as_rejected": "Mark as rejected",
     "mark_as_accepted": "Mark as accepted",
     "marked_as_accepted_message": "Estimate marked as accepted",
@@ -2012,7 +2052,9 @@
       "converted": "Converted to invoice",
       "issued": "Issued",
       "credited": "Credited",
-      "voided": "Voided by credit note"
+      "voided": "Voided by credit note",
+      "lost": "Marked lost",
+      "assigned": "Owner changed"
     },
     "kinds": {
       "header_changed": "Field",

@@ -159,7 +159,7 @@ function formatTime(iso: string): string {
 
 function dotClass(code: string): string {
   if (code === 'issued') return 'bg-primary-500'
-  if (code === 'voided' || code === 'rejected' || code === 'expired') return 'bg-red-500'
+  if (code === 'voided' || code === 'rejected' || code === 'expired' || code === 'lost') return 'bg-red-500'
   if (code === 'accepted' || code === 'converted') return 'bg-green-500'
   return 'bg-line-strong'
 }
