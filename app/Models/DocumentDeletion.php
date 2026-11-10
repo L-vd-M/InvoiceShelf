@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Events\OutboxService;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -34,7 +35,7 @@ class DocumentDeletion extends Model
 
     public static function record(Model $document, string $type, string $reasonCode, string $reason, ?int $userId = null): self
     {
-        return static::create([
+        $deletion = static::create([
             'company_id' => $document->company_id,
             'document_type' => $type,
             'document_id' => $document->id,
@@ -48,5 +49,18 @@ class DocumentDeletion extends Model
             'reason' => $reason,
             'deleted_by' => $userId ?? auth()->id(),
         ]);
+
+        $number = $deletion->document_number;
+        OutboxService::record('document.deleted', $type, $document, $number, [
+            'document_type' => $type,
+            'number' => $number,
+            'customer_id' => $deletion->customer_id,
+            'total' => $deletion->total === null ? null : (int) $deletion->total,
+            'status' => $deletion->status_at_deletion,
+            'reason_code' => $reasonCode,
+            'reason' => $reason,
+        ]);
+
+        return $deletion;
     }
 }

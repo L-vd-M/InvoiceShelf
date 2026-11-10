@@ -3,8 +3,8 @@
 namespace App\Services\Document;
 
 use App;
-use App\Facades\Hashids;
 use App\Exceptions\DocumentImmutableException;
+use App\Facades\Hashids;
 use App\Facades\Pdf;
 use App\Mail\SendInvoiceMail;
 use App\Models\Company;
@@ -14,12 +14,13 @@ use App\Models\DocumentDeletion;
 use App\Models\Estimate;
 use App\Models\ExchangeRateLog;
 use App\Models\Invoice;
+use App\Services\Events\OutboxService;
 use App\Services\Mail\CompanyMailConfigService;
 use App\Support\Pdf\PdfTemplateUtils;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class InvoiceService
@@ -113,6 +114,20 @@ class InvoiceService
 
             $locked->issued_at = now();
             $locked->save();
+
+            OutboxService::record('document.issued', 'invoice', $locked, $locked->invoice_number, [
+                'document_type' => 'invoice',
+                'number' => $locked->invoice_number,
+                'customer_id' => $locked->customer_id,
+                'issued_at' => $locked->issued_at->utc()->format('Y-m-d\TH:i:s\Z'),
+                'invoice_date' => $locked->invoice_date ? Carbon::parse($locked->invoice_date)->format('Y-m-d') : null,
+                'due_date' => $locked->due_date ? Carbon::parse($locked->due_date)->format('Y-m-d') : null,
+                'sub_total' => (int) $locked->sub_total,
+                'tax' => (int) $locked->tax,
+                'total' => (int) $locked->total,
+                'currency' => $locked->currency?->code,
+                'estimate_id' => $locked->estimate_id ?? null,
+            ]);
 
             return $locked;
         });

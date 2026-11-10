@@ -24,6 +24,7 @@ use App\Http\Controllers\Company\Auth\AuthController;
 use App\Http\Controllers\Company\Auth\ForgotPasswordController;
 use App\Http\Controllers\Company\Auth\InvitationRegistrationController;
 use App\Http\Controllers\Company\Auth\ResetPasswordController;
+use App\Http\Controllers\Company\CreditNote\CreditNotesController;
 use App\Http\Controllers\Company\Customer\CustomerCompaniesController;
 use App\Http\Controllers\Company\Customer\CustomersController;
 use App\Http\Controllers\Company\Customer\CustomerStatsController;
@@ -31,6 +32,9 @@ use App\Http\Controllers\Company\CustomField\CustomFieldsController;
 use App\Http\Controllers\Company\Dashboard\DashboardController;
 use App\Http\Controllers\Company\Estimate\EstimatesController;
 use App\Http\Controllers\Company\Estimate\EstimateTemplatesController;
+use App\Http\Controllers\Company\Events\EventsFeedController;
+use App\Http\Controllers\Company\Events\WebhookDeliveriesController;
+use App\Http\Controllers\Company\Events\WebhookEndpointsController;
 use App\Http\Controllers\Company\ExchangeRate\ExchangeRateProviderController;
 use App\Http\Controllers\Company\Expense\ExpenseCategoriesController;
 use App\Http\Controllers\Company\Expense\ExpensesController;
@@ -41,7 +45,6 @@ use App\Http\Controllers\Company\General\InvitationResponseController;
 use App\Http\Controllers\Company\General\NotesController;
 use App\Http\Controllers\Company\General\SearchController;
 use App\Http\Controllers\Company\General\SerialNumberController;
-use App\Http\Controllers\Company\CreditNote\CreditNotesController;
 use App\Http\Controllers\Company\Invoice\InvoicesController;
 use App\Http\Controllers\Company\Invoice\InvoiceTemplatesController;
 use App\Http\Controllers\Company\Item\ItemsController;
@@ -315,6 +318,25 @@ Route::prefix('/v1')->group(function () {
             Route::get('/credit-notes/{creditNote}', [CreditNotesController::class, 'show']);
 
             Route::get('/credit-notes/{creditNote}/pdf', [CreditNotesController::class, 'pdf']);
+
+            // Events and webhooks (owner-only, token abilities events:read / webhooks:manage)
+            // -------------------------------------------------
+
+            Route::get('/events', EventsFeedController::class);
+
+            Route::get('/webhook-endpoints', [WebhookEndpointsController::class, 'index']);
+
+            Route::post('/webhook-endpoints', [WebhookEndpointsController::class, 'store']);
+
+            Route::patch('/webhook-endpoints/{webhookEndpoint}', [WebhookEndpointsController::class, 'update']);
+
+            Route::delete('/webhook-endpoints/{webhookEndpoint}', [WebhookEndpointsController::class, 'destroy']);
+
+            Route::post('/webhook-endpoints/{webhookEndpoint}/rotate', [WebhookEndpointsController::class, 'rotate']);
+
+            Route::get('/webhook-deliveries', [WebhookDeliveriesController::class, 'index']);
+
+            Route::post('/webhook-deliveries/{webhookDelivery}/retry', [WebhookDeliveriesController::class, 'retry']);
 
             // Recurring Invoice
             // -------------------------------------------------

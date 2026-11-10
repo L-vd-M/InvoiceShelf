@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\Document\EstimateService;
+use App\Services\Events\OutboxService;
 use App\Support\Pdf\PdfHtmlSanitizer;
 use App\Support\Pdf\PdfTemplateUtils;
 use App\Support\SafeOrderBy;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -333,11 +335,24 @@ class Estimate extends Model implements HasMedia
             $this->company_id
         );
 
-        if ($convertEstimateAction === 'mark_estimate_as_accepted') {
-            $this->status = self::STATUS_ACCEPTED;
-            $this->save();
+        if ($convertEstimateAction === 'mark_estimate_as_accepted' && $this->status !== self::STATUS_ACCEPTED) {
+            DB::transaction(function () {
+                $this->status = self::STATUS_ACCEPTED;
+                $this->save();
+                $this->recordAccepted();
+            });
         }
 
         return true;
+    }
+
+    public function recordAccepted(): void
+    {
+        OutboxService::record('quote.accepted', 'estimate', $this, $this->estimate_number, [
+            'number' => $this->estimate_number,
+            'customer_id' => $this->customer_id,
+            'total' => (int) $this->total,
+            'currency' => $this->currency?->code,
+        ]);
     }
 }

@@ -399,6 +399,13 @@ class EstimateService
 
     public function changeStatus(Estimate $estimate, string $status): void
     {
-        $estimate->update(['status' => $status]);
+        DB::transaction(function () use ($estimate, $status) {
+            $wasAccepted = $estimate->status === Estimate::STATUS_ACCEPTED;
+            $estimate->update(['status' => $status]);
+
+            if ($status === Estimate::STATUS_ACCEPTED && ! $wasAccepted) {
+                $estimate->recordAccepted();
+            }
+        });
     }
 }

@@ -15,6 +15,10 @@ if (config('app.env') === 'demo') {
 }
 
 if (InstallUtils::isDbCreated()) {
+    Schedule::command('webhooks:deliver')
+        ->everyMinute()
+        ->withoutOverlapping();
+
     Schedule::command('check:invoices:status')
         ->daily();
 
