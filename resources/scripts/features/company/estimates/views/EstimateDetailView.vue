@@ -40,6 +40,7 @@
           :can-delete="canDelete"
           :can-send="canSend"
           :can-create-invoice="canCreateInvoice"
+          @updated="loadEstimate"
         />
       </template>
     </BasePageHeader>
@@ -219,9 +220,13 @@
     </div>
 
     <BasePdfPreview v-show="detailTab === 'document'" :src="shareableLink" />
+    <DealLifecycleSummary
+      v-if="detailTab === 'history'"
+      :estimate-id="estimateData.id"
+    />
     <DocumentHistory
       v-if="detailTab === 'history'"
-      :key="estimateData.id"
+      :key="`${estimateData.id}-${estimateStore.dealVersion}`"
       type="estimate"
       :document-id="estimateData.id"
     />
@@ -240,6 +245,7 @@ import EstimateDropdown from '../components/EstimateDropdown.vue'
 import SendEstimateModal from '../components/SendEstimateModal.vue'
 import LoadingIcon from '@/scripts/components/icons/LoadingIcon.vue'
 import DocumentHistory from '@/scripts/features/shared/document-history/DocumentHistory.vue'
+import DealLifecycleSummary from '@/scripts/features/shared/document-history/DealLifecycleSummary.vue'
 import { useUserStore } from '../../../../stores/user.store'
 import { useDialogStore } from '../../../../stores/dialog.store'
 import { useModalStore } from '../../../../stores/modal.store'

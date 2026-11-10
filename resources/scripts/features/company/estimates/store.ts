@@ -4,6 +4,7 @@ import { useNotificationStore } from '../../../stores/notification.store'
 import { useCompanyStore } from '../../../stores/company.store'
 import { useUserStore } from '../../../stores/user.store'
 import { estimateService } from '../../../api/services/estimate.service'
+import { dealService } from '../../../api/services/deal.service'
 import type {
   EstimateListParams,
   EstimateListResponse,
@@ -12,6 +13,7 @@ import type {
   EstimateTemplate,
 } from '../../../api/services/estimate.service'
 import type { Estimate, EstimateItem } from '../../../types/domain/estimate'
+import type { DealLifecycle, MarkLostPayload } from '../../../types/domain/deal'
 import type { Invoice, DiscountType } from '../../../types/domain/invoice'
 import type { Tax, TaxType } from '../../../types/domain/tax'
 import type { Currency } from '../../../types/domain/currency'
@@ -138,6 +140,7 @@ export interface EstimateState {
   isFetchingInitialSettings: boolean
   showExchangeRate: boolean
   newEstimate: EstimateFormData
+  dealVersion: number
 }
 
 export const useEstimateStore = defineStore('estimate', {
@@ -150,6 +153,7 @@ export const useEstimateStore = defineStore('estimate', {
     isFetchingInitialSettings: false,
     showExchangeRate: false,
     newEstimate: createEstimateStub(),
+    dealVersion: 0,
   }),
 
   getters: {
@@ -388,6 +392,22 @@ export const useEstimateStore = defineStore('estimate', {
         status: 'REJECTED',
       })
       return response
+    },
+
+    async markLost(id: number, payload: MarkLostPayload): Promise<DealLifecycle> {
+      const response = await dealService.markLost(id, payload)
+      const pos = this.estimates.findIndex((est) => est.id === id)
+      if (pos !== -1 && this.estimates[pos]) {
+        this.estimates[pos].status = 'REJECTED' as Estimate['status']
+      }
+      this.dealVersion++
+      return response.data
+    },
+
+    async assignOwner(id: number, userId: number): Promise<DealLifecycle> {
+      const response = await dealService.assign(id, userId)
+      this.dealVersion++
+      return response.data
     },
 
     async markAsSent(data: EstimateStatusPayload): Promise<unknown> {
