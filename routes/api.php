@@ -81,6 +81,7 @@ use App\Http\Controllers\CustomerPortal\Invoice\InvoicesController as CustomerIn
 use App\Http\Controllers\CustomerPortal\Payment\PaymentMethodController;
 use App\Http\Controllers\CustomerPortal\Payment\PaymentsController as CustomerPaymentsController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\OpenApiController;
 use App\Http\Controllers\Setup\AiConfigurationController as InstallerAiConfigurationController;
 use App\Http\Controllers\Setup\AppDomainController;
 use App\Http\Controllers\Setup\DatabaseConfigurationController;
@@ -128,6 +129,8 @@ Route::prefix('/v1')->group(function () {
     Route::get('/health', [HealthController::class, 'health'])->middleware('throttle:60,1');
 
     Route::get('/version', [HealthController::class, 'version'])->middleware('throttle:60,1');
+
+    Route::get('/openapi.json', OpenApiController::class)->middleware('throttle:60,1');
 
     // Authentication & Password Reset
     // ----------------------------------

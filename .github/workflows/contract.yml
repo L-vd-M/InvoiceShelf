@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Contract
+
+on:
+  push:
+    branches: [dev, 3.x]
+  pull_request:
+
+jobs:
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  openapi:
+    name: OpenAPI 3.1 lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npx --yes @stoplight/spectral-cli lint resources/openapi/documents.v1.json --ruleset resources/openapi/.spectral.yaml --fail-severity=error
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install openapi-spec-validator && python -c "import json,sys; from openapi_spec_validator import validate; validate(json.load(open('resources/openapi/documents.v1.json')))"
