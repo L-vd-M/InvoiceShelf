@@ -20,6 +20,8 @@ class InvoiceResource extends JsonResource
             'due_date' => $this->due_date,
             'invoice_number' => $this->invoice_number,
             'reference_number' => $this->reference_number,
+            'external_ref' => $this->external_ref,
+            'payment_reference' => $this->reference_number ?: ($this->issued_at ? $this->invoice_number : null),
             'status' => $this->status,
             'paid_status' => $this->paid_status,
             'tax_per_item' => $this->tax_per_item,

@@ -19,6 +19,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Customer extends Authenticatable implements HasMedia
 {
+    use \App\Models\Concerns\HasExternalRef;
+
     use HasApiTokens;
     use HasCustomFieldsTrait;
     use HasFactory;
@@ -245,6 +247,14 @@ class Customer extends Authenticatable implements HasMedia
 
         if ($filters->get('search')) {
             $query->whereSearch($filters->get('search'));
+        }
+
+        if ($filters->get('external_ref')) {
+            $query->whereExternalRef($filters->get('external_ref'));
+        }
+
+        if ($filters->get('updated_since')) {
+            $query->where('customers.updated_at', '>=', Carbon::parse($filters->get('updated_since')));
         }
 
         if ($filters->get('contact_name')) {

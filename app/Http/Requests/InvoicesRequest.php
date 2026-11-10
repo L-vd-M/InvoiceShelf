@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\HasExternalRefInput;
 use App\Models\CompanySetting;
 use App\Models\Customer;
 use App\Models\Invoice;
@@ -11,6 +12,8 @@ use Illuminate\Validation\Rule;
 
 class InvoicesRequest extends FormRequest
 {
+    use HasExternalRefInput;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -100,6 +103,8 @@ class InvoicesRequest extends FormRequest
             }
         }
 
+        $rules += $this->externalRefRules('invoices', $this->route('invoice')?->id);
+
         if ($this->isMethod('PUT')) {
             $rules['invoice_number'] = [
                 'required',
@@ -134,7 +139,7 @@ class InvoicesRequest extends FormRequest
             $discount_per_item
         );
 
-        return collect($this->except('items', 'taxes'))
+        return collect($this->except('items', 'taxes', 'external_ref'))
             ->merge([
                 'creator_id' => $this->user()->id ?? null,
                 'status' => $this->has('invoiceSend') ? Invoice::STATUS_SENT : Invoice::STATUS_DRAFT,
@@ -155,7 +160,7 @@ class InvoicesRequest extends FormRequest
                 'base_tax' => $totals['tax'] * $exchange_rate,
                 'base_due_amount' => $totals['total'] * $exchange_rate,
                 'currency_id' => $currency,
-            ])
+            ] + $this->externalRefColumns())
             ->toArray();
     }
 }

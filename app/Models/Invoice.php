@@ -21,6 +21,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Invoice extends Model implements HasMedia
 {
+    use \App\Models\Concerns\HasExternalRef;
+
     use GeneratesPdfTrait;
     use HasCustomFieldsTrait;
     use HasFactory;
@@ -308,6 +310,10 @@ class Invoice extends Model implements HasMedia
             $start = Carbon::parse($filters['from_date']);
             $end = Carbon::parse($filters['to_date']);
             $query->invoicesBetween($start, $end);
+        })->when($filters['external_ref'] ?? null, function ($query, $ref) {
+            $query->whereExternalRef($ref);
+        })->when($filters['updated_since'] ?? null, function ($query, $since) {
+            $query->where('invoices.updated_at', '>=', Carbon::parse($since));
         })->when($filters['customer_id'] ?? null, function ($query, $customerId) {
             $query->where('customer_id', $customerId);
         })->when($filters['orderByField'] ?? null, function ($query, $orderByField) use ($filters) {

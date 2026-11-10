@@ -8,6 +8,7 @@ use App\Http\Middleware\CustomerGuest;
 use App\Http\Middleware\CustomerPortalMiddleware;
 use App\Http\Middleware\CustomerRedirectIfAuthenticated;
 use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\EnforceTokenScope;
 use App\Http\Middleware\EnsureNotContainerized;
 use App\Http\Middleware\InstallationMiddleware;
 use App\Http\Middleware\PdfMiddleware;
@@ -83,6 +84,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'customer-portal' => CustomerPortalMiddleware::class,
             'guest' => RedirectIfAuthenticated::class,
             'install' => InstallationMiddleware::class,
+            'token-scope' => EnforceTokenScope::class,
             'not-containerized' => EnsureNotContainerized::class,
             'pdf-auth' => PdfMiddleware::class,
             'redirect-if-installed' => RedirectIfInstalled::class,
@@ -94,6 +96,7 @@ return Application::configure(basePath: dirname(__DIR__))
             StartSession::class,
             ShareErrorsFromSession::class,
             Authenticate::class,
+            EnforceTokenScope::class,
             AuthenticateSession::class,
             SubstituteBindings::class,
             Authorize::class,
