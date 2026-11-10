@@ -21,6 +21,13 @@ use Illuminate\Support\Facades\DB;
 
 class EstimateService
 {
+    private const STATUS_REASONS = [
+        Estimate::STATUS_SENT => 'sent',
+        Estimate::STATUS_VIEWED => 'viewed',
+        Estimate::STATUS_REJECTED => 'rejected',
+        Estimate::STATUS_EXPIRED => 'expired',
+    ];
+
     public function __construct(
         private readonly DocumentItemService $documentItemService,
     ) {}
@@ -68,10 +75,17 @@ class EstimateService
             $estimate->addCustomFields($customFields);
         }
 
+        RevisionService::record($estimate, 'created');
+
         return $estimate;
     }
 
     public function update(Estimate $estimate, Request $request): Estimate
+    {
+        return DB::transaction(fn () => $this->updateInTransaction($estimate, $request));
+    }
+
+    private function updateInTransaction(Estimate $estimate, Request $request): Estimate
     {
         $data = $request->getEstimatePayload();
 
@@ -113,6 +127,8 @@ class EstimateService
             $estimate->updateCustomFields($request->customFields);
         }
 
+        RevisionService::record($estimate, 'edited', ['skip_if_unchanged' => true]);
+
         return Estimate::with([
             'items.taxes',
             'items.fields',
@@ -152,6 +168,8 @@ class EstimateService
             $mail->bcc($data['bcc']);
         }
         $mail->send(new SendEstimateMail($data));
+
+        RevisionService::record($estimate, 'sent');
 
         return [
             'success' => true,
@@ -302,6 +320,8 @@ class EstimateService
             $newEstimate->addCustomFields($customFields);
         }
 
+        RevisionService::record($newEstimate, 'created');
+
         return $newEstimate;
     }
 
@@ -392,7 +412,10 @@ class EstimateService
             $invoice->addCustomFields($customFields);
         }
 
+        RevisionService::record($invoice, 'created');
+
         $estimate->checkForEstimateConvertAction();
+        RevisionService::record($estimate, 'converted', ['note' => 'Converted to invoice draft '.$invoice->invoice_number]);
 
         return Invoice::find($invoice->id);
     }
@@ -400,11 +423,17 @@ class EstimateService
     public function changeStatus(Estimate $estimate, string $status): void
     {
         DB::transaction(function () use ($estimate, $status) {
-            $wasAccepted = $estimate->status === Estimate::STATUS_ACCEPTED;
+            $previous = $estimate->status;
             $estimate->update(['status' => $status]);
 
-            if ($status === Estimate::STATUS_ACCEPTED && ! $wasAccepted) {
+            if ($status === $previous) {
+                return;
+            }
+
+            if ($status === Estimate::STATUS_ACCEPTED) {
                 $estimate->recordAccepted();
+            } elseif ($reason = self::STATUS_REASONS[$status] ?? null) {
+                RevisionService::record($estimate, $reason);
             }
         });
     }

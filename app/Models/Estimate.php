@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\Document\EstimateService;
+use App\Services\Document\RevisionService;
 use App\Services\Events\OutboxService;
 use App\Support\Pdf\PdfHtmlSanitizer;
 use App\Support\Pdf\PdfTemplateUtils;
@@ -354,5 +355,7 @@ class Estimate extends Model implements HasMedia
             'total' => (int) $this->total,
             'currency' => $this->currency?->code,
         ]);
+
+        RevisionService::record($this, 'accepted');
     }
 }

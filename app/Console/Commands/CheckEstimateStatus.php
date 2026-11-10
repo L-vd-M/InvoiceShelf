@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Estimate;
+use App\Services\Document\RevisionService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
@@ -47,6 +48,7 @@ class CheckEstimateStatus extends Command
             $estimate->status = Estimate::STATUS_EXPIRED;
             printf("Estimate %s is EXPIRED \n", $estimate->estimate_number);
             $estimate->save();
+            RevisionService::record($estimate, 'expired', ['source' => 'system', 'actor_user_id' => null]);
         }
     }
 }

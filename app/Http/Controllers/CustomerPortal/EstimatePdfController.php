@@ -9,6 +9,7 @@ use App\Models\CompanySetting;
 use App\Models\Customer;
 use App\Models\EmailLog;
 use App\Models\Estimate;
+use App\Services\Document\RevisionService;
 use Illuminate\Http\Request;
 
 class EstimatePdfController extends Controller
@@ -22,6 +23,7 @@ class EstimatePdfController extends Controller
         if ($estimate->status == Estimate::STATUS_SENT || $estimate->status == Estimate::STATUS_DRAFT) {
             $estimate->status = Estimate::STATUS_VIEWED;
             $estimate->save();
+            RevisionService::record($estimate, 'viewed', ['source' => 'customer_portal', 'actor_user_id' => null]);
             $notifyEstimateViewed = CompanySetting::getSetting(
                 'notify_estimate_viewed',
                 $estimate->company_id
