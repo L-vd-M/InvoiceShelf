@@ -4,6 +4,7 @@ namespace App\Services\Document;
 
 use App;
 use App\Facades\Hashids;
+use App\Exceptions\DocumentImmutableException;
 use App\Facades\Pdf;
 use App\Mail\SendInvoiceMail;
 use App\Models\Company;
@@ -40,26 +41,13 @@ class InvoiceService
             $data['status'] = Invoice::STATUS_SENT;
         }
 
+        // A draft has no legal number: it carries a draft reference and takes the next gap-free
+        // number from the counter only when it is issued, so deleting a draft never leaves a gap.
+        $data['invoice_number'] = Invoice::draftReference();
+        $data['sequence_number'] = null;
+        $data['customer_sequence_number'] = null;
+
         $invoice = Invoice::create($data);
-
-        $serial = (new SerialNumberService)
-            ->setModel($invoice)
-            ->setCompany($invoice->company_id)
-            ->setCustomer($invoice->customer_id)
-            ->reserveNextNumbers();
-
-        $invoice->sequence_number = $serial->nextSequenceNumber;
-        $invoice->customer_sequence_number = $serial->nextCustomerSequenceNumber;
-
-        // The number the form showed was read before this request took its place in the queue.
-        // If someone else issued that same text meanwhile, use the number reserved here.
-        $taken = Invoice::where('company_id', $invoice->company_id)
-            ->where('invoice_number', $invoice->invoice_number)
-            ->where('id', '<>', $invoice->id)
-            ->exists();
-        if ($taken) {
-            $invoice->invoice_number = $serial->getNextNumber();
-        }
 
         $invoice->unique_hash = Hashids::connection(Invoice::class)->encode($invoice->id);
         $invoice->save();
@@ -80,6 +68,10 @@ class InvoiceService
             $invoice->addCustomFields($request->customFields);
         }
 
+        if ($data['status'] === Invoice::STATUS_SENT) {
+            $this->issue($invoice);
+        }
+
         return Invoice::with([
             'items',
             'items.fields',
@@ -90,16 +82,52 @@ class InvoiceService
     }
 
     /**
+     * Take the next gap-free number (drafts have none yet), stamp issued_at and freeze the document.
+     * Idempotent: an issued invoice is returned unchanged.
+     */
+    public function issue(Invoice $invoice): Invoice
+    {
+        $issued = DB::transaction(function () use ($invoice) {
+            $locked = Invoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
+
+            if ($locked->isIssued()) {
+                return $locked;
+            }
+
+            if ($locked->sequence_number === null) {
+                $serial = (new SerialNumberService)
+                    ->setModel($locked)
+                    ->setCompany($locked->company_id)
+                    ->setCustomer($locked->customer_id)
+                    ->reserveNextNumbers();
+
+                $locked->sequence_number = $serial->nextSequenceNumber;
+                $locked->customer_sequence_number = $serial->nextCustomerSequenceNumber;
+                $locked->invoice_number = $serial->getNextNumber();
+            }
+
+            if ($locked->status === Invoice::STATUS_DRAFT) {
+                $locked->status = Invoice::STATUS_SENT;
+                $locked->sent = true;
+            }
+
+            $locked->issued_at = now();
+            $locked->save();
+
+            return $locked;
+        });
+
+        return $invoice->setRawAttributes($issued->getAttributes(), true);
+    }
+
+    /**
      * @throws ValidationException
      */
     public function update(Invoice $invoice, Request $request): Invoice
     {
-        $serial = (new SerialNumberService)
-            ->setModel($invoice)
-            ->setCompany($invoice->company_id)
-            ->setCustomer($request->customer_id)
-            ->setModelObject($invoice->id)
-            ->reserveNextNumbers();
+        if ($invoice->isIssued()) {
+            throw new DocumentImmutableException('edited', $invoice->invoice_number);
+        }
 
         $data = $request->getInvoicePayload();
         $oldTotal = $invoice->total;
@@ -126,7 +154,12 @@ class InvoiceService
 
         $data['due_amount'] = ($invoice->due_amount + $oldTotal);
         $data['base_due_amount'] = $data['due_amount'] * $data['exchange_rate'];
-        $data['customer_sequence_number'] = $serial->nextCustomerSequenceNumber;
+
+        // An unissued draft keeps its draft reference; only a legacy numbered draft may take a typed number.
+        if ($invoice->sequence_number === null) {
+            $data['invoice_number'] = $invoice->invoice_number;
+        }
+        unset($data['sequence_number'], $data['customer_sequence_number']);
 
         $invoice->update($data);
 
@@ -175,6 +208,13 @@ class InvoiceService
     {
         return DB::transaction(function () use ($ids, $reasonCode, $reason) {
             foreach ($ids as $id) {
+                $invoice = Invoice::find($id);
+                if ($invoice?->isIssued()) {
+                    throw new DocumentImmutableException('deleted', $invoice->invoice_number);
+                }
+            }
+
+            foreach ($ids as $id) {
                 $this->deleteOne(Invoice::find($id), $reasonCode, $reason);
             }
 
@@ -217,6 +257,8 @@ class InvoiceService
 
     public function send(Invoice $invoice, array $data): array
     {
+        $this->issue($invoice);
+
         $data = $this->sendInvoiceData($invoice, $data);
 
         CompanyMailConfigService::apply($invoice->company_id);
@@ -350,12 +392,6 @@ class InvoiceService
     {
         $date = Carbon::now();
 
-        $serial = (new SerialNumberService)
-            ->setModel($invoice)
-            ->setCompany($invoice->company_id)
-            ->setCustomer($invoice->customer_id)
-            ->reserveNextNumbers();
-
         $dueDate = null;
         $dueDateEnabled = CompanySetting::getSetting(
             'invoice_set_due_date_automatically',
@@ -375,9 +411,7 @@ class InvoiceService
         $newInvoice = Invoice::create([
             'invoice_date' => $date->format('Y-m-d'),
             'due_date' => $dueDate,
-            'invoice_number' => $serial->getNextNumber(),
-            'sequence_number' => $serial->nextSequenceNumber,
-            'customer_sequence_number' => $serial->nextCustomerSequenceNumber,
+            'invoice_number' => Invoice::draftReference(),
             'reference_number' => $invoice->reference_number,
             'customer_id' => $invoice->customer_id,
             'company_id' => $invoice->company_id,
@@ -502,10 +536,9 @@ class InvoiceService
     public function changeStatus(Invoice $invoice, string $status): void
     {
         if ($status == Invoice::STATUS_SENT) {
-            $invoice->status = Invoice::STATUS_SENT;
-            $invoice->sent = true;
-            $invoice->save();
+            $this->issue($invoice);
         } elseif ($status == Invoice::STATUS_COMPLETED) {
+            $this->issue($invoice);
             $invoice->status = Invoice::STATUS_COMPLETED;
             $invoice->paid_status = Invoice::STATUS_PAID;
             $invoice->due_amount = 0;

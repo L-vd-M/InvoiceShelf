@@ -139,6 +139,17 @@ class InvoicesController extends Controller
         return $markdown->render('emails.send.invoice', ['data' => $data]);
     }
 
+    public function issue(Request $request, Invoice $invoice)
+    {
+        $this->authorize('send invoice', $invoice);
+
+        $invoice = $this->invoiceService->issue($invoice);
+
+        GenerateInvoicePdfJob::dispatch($invoice, true);
+
+        return new InvoiceResource($invoice->load('estimate'));
+    }
+
     public function clone(Request $request, Invoice $invoice)
     {
         $this->authorize('view', $invoice);

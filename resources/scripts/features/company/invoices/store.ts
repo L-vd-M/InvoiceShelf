@@ -368,6 +368,15 @@ export const useInvoiceStore = defineStore('invoice', {
       return { data: response }
     },
 
+    async issueInvoice(data: { id: number }): Promise<Invoice> {
+      const response = await invoiceService.issue(data.id)
+      const pos = this.invoices.findIndex((inv) => inv.id === data.id)
+      if (pos !== -1) {
+        this.invoices[pos] = response.data
+      }
+      return response.data
+    },
+
     async markAsSent(data: InvoiceStatusPayload): Promise<unknown> {
       const response = await invoiceService.changeStatus(data)
       const pos = this.invoices.findIndex((inv) => inv.id === data.id)

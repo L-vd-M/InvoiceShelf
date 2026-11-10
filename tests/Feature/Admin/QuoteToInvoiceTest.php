@@ -50,6 +50,8 @@ test('issues a paid, linked invoice with a payment in one go', function () {
     $payment = Payment::where('invoice_id', $invoice->id)->first();
 
     expect($invoice->estimate_id)->toBe($this->estimate->id)
+        ->and($invoice->isIssued())->toBeTrue()
+        ->and($invoice->invoice_number)->not->toStartWith('DRAFT-')
         ->and($invoice->paid_status)->toBe(Invoice::STATUS_PAID)
         ->and($invoice->due_amount)->toBe(0)
         ->and($payment->amount)->toBe(50000)

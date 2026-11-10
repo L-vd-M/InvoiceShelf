@@ -64,7 +64,6 @@ test('the database refuses a second invoice with the same sequence number', func
 test('a number text already issued by a request that arrived first is replaced by the reserved number', function () {
     $existing = Invoice::factory()->create(['company_id' => $this->company->id, 'invoice_number' => 'INV-STALE', 'sequence_number' => 500]);
 
-    // bypass form validation: the race is between validation and insert
     $service = app(App\Services\Document\InvoiceService::class);
     $request = new App\Http\Requests\InvoicesRequest;
     $request->headers->set('company', (string) $this->company->id);
@@ -78,6 +77,11 @@ test('a number text already issued by a request that arrived first is replaced b
 
     $invoice = $service->create($request);
 
-    expect($invoice->invoice_number)->not->toBe('INV-STALE')
-        ->and($invoice->sequence_number)->toBeGreaterThan(500);
+    expect($invoice->invoice_number)->toStartWith('DRAFT-')
+        ->and($invoice->sequence_number)->toBeNull();
+
+    $issued = $service->issue($invoice);
+
+    expect($issued->invoice_number)->not->toBe('INV-STALE')
+        ->and($issued->sequence_number)->toBeGreaterThan(500);
 });

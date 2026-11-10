@@ -62,7 +62,8 @@ class InvoicePolicy
     public function update(User $user, Invoice $invoice): bool
     {
         if (BouncerFacade::can('edit-invoice', $invoice) && $user->hasCompany($invoice->company_id)) {
-            return $invoice->allow_edit;
+            // an issued invoice reaches the service, which refuses it with 409 document_immutable
+            return $invoice->isIssued() || $invoice->allow_edit;
         }
 
         return false;

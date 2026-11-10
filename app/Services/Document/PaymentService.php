@@ -29,7 +29,7 @@ class PaymentService
         $data = $request->getPaymentPayload();
 
         if ($request->invoice_id) {
-            $invoice = Invoice::find($request->invoice_id);
+            $invoice = app(InvoiceService::class)->issue(Invoice::find($request->invoice_id));
             $invoice->subtractInvoicePayment($request->amount);
         }
 

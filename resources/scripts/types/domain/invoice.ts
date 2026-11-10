@@ -87,6 +87,8 @@ export interface Invoice {
   formatted_invoice_date: string
   formatted_due_date: string
   allow_edit: boolean
+  issued_at: string | null
+  is_issued: boolean
   payment_module_enabled: boolean
   sales_tax_type: string | null
   sales_tax_address_type: string | null

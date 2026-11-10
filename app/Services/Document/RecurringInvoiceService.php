@@ -126,12 +126,6 @@ class RecurringInvoiceService
 
     private function createInvoiceFromRecurring(RecurringInvoice $recurringInvoice): void
     {
-        $serial = (new SerialNumberService)
-            ->setModel(new Invoice)
-            ->setCompany($recurringInvoice->company_id)
-            ->setCustomer($recurringInvoice->customer_id)
-            ->reserveNextNumbers();
-
         $days = intval(CompanySetting::getSetting('invoice_due_date_days', $recurringInvoice->company_id));
 
         if (! $days || $days == 'null') {
@@ -161,9 +155,7 @@ class RecurringInvoiceService
         $newInvoice['exchange_rate'] = $recurringInvoice->exchange_rate;
         $newInvoice['sales_tax_type'] = $recurringInvoice->sales_tax_type;
         $newInvoice['sales_tax_address_type'] = $recurringInvoice->sales_tax_address_type;
-        $newInvoice['invoice_number'] = $serial->getNextNumber();
-        $newInvoice['sequence_number'] = $serial->nextSequenceNumber;
-        $newInvoice['customer_sequence_number'] = $serial->nextCustomerSequenceNumber;
+        $newInvoice['invoice_number'] = Invoice::draftReference();
         $newInvoice['base_due_amount'] = $recurringInvoice->exchange_rate * $recurringInvoice->due_amount;
         $newInvoice['base_discount_val'] = $recurringInvoice->exchange_rate * $recurringInvoice->discount_val;
         $newInvoice['base_sub_total'] = $recurringInvoice->exchange_rate * $recurringInvoice->sub_total;

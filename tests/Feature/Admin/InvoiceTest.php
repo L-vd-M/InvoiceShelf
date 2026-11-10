@@ -54,7 +54,7 @@ test('create invoice', function () {
 
     $this->assertDatabaseHas('invoices', [
         'template_name' => $invoice['template_name'],
-        'invoice_number' => $invoice['invoice_number'],
+        'sequence_number' => null,
         'customer_id' => $invoice['customer_id'],
     ]);
 
@@ -90,7 +90,7 @@ test('server recomputes invoice totals and ignores client-supplied amounts', fun
     postJson('api/v1/invoices', $invoice)->assertOk();
 
     $this->assertDatabaseHas('invoices', [
-        'invoice_number' => $invoice['invoice_number'],
+        'sequence_number' => null,
         'sub_total' => 100000,
         'total' => 100000,
         'due_amount' => 100000,
@@ -176,7 +176,7 @@ test('create invoice as sent', function () {
     $response->assertOk();
 
     $this->assertDatabaseHas('invoices', [
-        'invoice_number' => $invoice['invoice_number'],
+        'sequence_number' => null,
         'customer_id' => $invoice['customer_id'],
         'template_name' => $invoice['template_name'],
     ]);
@@ -366,7 +366,7 @@ test('create invoice with negative tax', function () {
     $response->assertOk();
 
     $this->assertDatabaseHas('invoices', [
-        'invoice_number' => $invoice['invoice_number'],
+        'sequence_number' => null,
         'customer_id' => $invoice['customer_id'],
     ]);
 
@@ -398,7 +398,7 @@ test('create invoice with tax per item', function () {
     $response->assertOk();
 
     $this->assertDatabaseHas('invoices', [
-        'invoice_number' => $invoice['invoice_number'],
+        'sequence_number' => null,
         'customer_id' => $invoice['customer_id'],
     ]);
 
@@ -451,7 +451,7 @@ test('create invoice with EUR currency', function () {
 
     $this->assertDatabaseHas('invoices', [
         'template_name' => $invoice['template_name'],
-        'invoice_number' => $invoice['invoice_number'],
+        'sequence_number' => null,
         'sub_total' => $invoice['sub_total'],
         'discount' => $invoice['discount'],
         'customer_id' => $invoice['customer_id'],
