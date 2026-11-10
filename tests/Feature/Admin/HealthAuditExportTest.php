@@ -26,7 +26,8 @@ beforeEach(function () {
 
     $this->issued = function (): int {
         $id = postJson('api/v1/invoices', Invoice::factory()->raw([
-            'taxes' => [Tax::factory()->raw()], 'items' => [InvoiceItem::factory()->raw()],
+            'taxes' => [Tax::factory()->raw()],
+            'items' => [InvoiceItem::factory()->raw(['price' => 10000, 'quantity' => 1, 'discount' => 0, 'discount_val' => 0, 'tax' => 0])],
         ]))->assertOk()->json('data.id');
         postJson("api/v1/invoices/{$id}/issue")->assertOk();
 
