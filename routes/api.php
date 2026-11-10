@@ -39,6 +39,7 @@ use App\Http\Controllers\Company\ExchangeRate\ExchangeRateProviderController;
 use App\Http\Controllers\Company\Expense\ExpenseCategoriesController;
 use App\Http\Controllers\Company\Expense\ExpensesController;
 use App\Http\Controllers\Company\General\BootstrapController;
+use App\Http\Controllers\Company\Integration\IntegrationTokensController;
 use App\Http\Controllers\Company\General\ConfigController;
 use App\Http\Controllers\Company\General\FormatsController;
 use App\Http\Controllers\Company\General\InvitationResponseController;
@@ -194,7 +195,7 @@ Route::prefix('/v1')->group(function () {
         Route::post('stop-impersonating', [UsersController::class, 'stopImpersonating']);
     });
 
-    Route::middleware(['auth:sanctum', 'company'])->group(function () {
+    Route::middleware(['auth:sanctum', 'token-scope', 'company'])->group(function () {
         Route::middleware(['bouncer'])->group(function () {
 
             // Bootstrap
@@ -334,6 +335,15 @@ Route::prefix('/v1')->group(function () {
             Route::get('/credit-notes/{creditNote}', [CreditNotesController::class, 'show']);
 
             Route::get('/credit-notes/{creditNote}/pdf', [CreditNotesController::class, 'pdf']);
+
+            // Integration tokens (owner, full-access session only)
+            // -------------------------------------------------
+
+            Route::get('/integration-tokens', [IntegrationTokensController::class, 'index']);
+
+            Route::post('/integration-tokens', [IntegrationTokensController::class, 'store']);
+
+            Route::delete('/integration-tokens/{id}', [IntegrationTokensController::class, 'destroy']);
 
             // Events and webhooks (owner-only, token abilities events:read / webhooks:manage)
             // -------------------------------------------------

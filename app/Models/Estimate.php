@@ -24,6 +24,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Estimate extends Model implements HasMedia
 {
+    use \App\Models\Concerns\HasExternalRef;
+
     use GeneratesPdfTrait;
     use HasCustomFieldsTrait;
     use HasFactory;
@@ -190,6 +192,14 @@ class Estimate extends Model implements HasMedia
 
         if ($filters->get('customer_id')) {
             $query->whereCustomer($filters->get('customer_id'));
+        }
+
+        if ($filters->get('external_ref')) {
+            $query->whereExternalRef($filters->get('external_ref'));
+        }
+
+        if ($filters->get('updated_since')) {
+            $query->where($query->getModel()->getTable().'.updated_at', '>=', Carbon::parse($filters->get('updated_since')));
         }
 
         if ($filters->get('orderByField') || $filters->get('orderBy')) {

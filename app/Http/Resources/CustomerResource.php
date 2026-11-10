@@ -17,6 +17,7 @@ class CustomerResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'external_ref' => $this->external_ref,
             'email' => $this->email,
             'phone' => $this->phone,
             'contact_name' => $this->contact_name,
