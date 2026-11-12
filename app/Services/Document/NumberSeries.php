@@ -43,6 +43,20 @@ class NumberSeries
     public static function reserve(int|string $company, string $type, int $year): int
     {
         return DB::transaction(function () use ($company, $type, $year) {
+            if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+                // One atomic upsert takes the row lock directly. Insert-if-missing then SELECT ... FOR UPDATE
+                // deadlocks on InnoDB when several first issues of a year race (shared lock upgrade).
+                DB::statement(
+                    'INSERT INTO document_number_series (company_id, document_type, year, last_sequence, created_at, updated_at) VALUES (?, ?, ?, 1, ?, ?) '
+                    .'ON DUPLICATE KEY UPDATE last_sequence = last_sequence + 1, updated_at = VALUES(updated_at)',
+                    [$company, $type, $year, now(), now()]
+                );
+
+                return (int) DB::table('document_number_series')
+                    ->where(['company_id' => $company, 'document_type' => $type, 'year' => $year])
+                    ->value('last_sequence');
+            }
+
             $row = self::lockedRow($company, $type, $year);
             $next = (int) $row->last_sequence + 1;
 
