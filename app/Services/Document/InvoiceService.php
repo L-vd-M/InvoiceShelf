@@ -108,8 +108,7 @@ class InvoiceService
                     ->setCustomer($locked->customer_id)
                     ->reserveNextNumbers();
 
-                $locked->sequence_number = $serial->nextSequenceNumber;
-                $locked->customer_sequence_number = $serial->nextCustomerSequenceNumber;
+                $serial->applyTo($locked);
                 $locked->invoice_number = $serial->getNextNumber();
             }
 
@@ -513,6 +512,8 @@ class InvoiceService
             'estimate_number' => $serial->getNextNumber(),
             'sequence_number' => $serial->nextSequenceNumber,
             'customer_sequence_number' => $serial->nextCustomerSequenceNumber,
+            'series_number' => $serial->seriesActive() ? $serial->seriesNumber : null,
+            'number_year' => $serial->seriesActive() ? $serial->numberYear : null,
             'reference_number' => $serial->getNextNumber(),
             'customer_id' => $invoice->customer_id,
             'company_id' => $invoice->company_id,

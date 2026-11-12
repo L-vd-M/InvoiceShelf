@@ -58,8 +58,13 @@ class EstimateService
                 ->setCustomer($estimate->customer_id)
                 ->reserveNextNumbers();
 
-            $estimate->sequence_number = $serial->nextSequenceNumber;
-            $estimate->customer_sequence_number = $serial->nextCustomerSequenceNumber;
+            $serial->applyTo($estimate);
+
+            if ($serial->seriesActive()) {
+                // the series is authoritative: a number previewed or typed by the client is replaced
+                $estimate->estimate_number = $serial->getNextNumber();
+            }
+
             $estimate->save();
         }
 
@@ -281,6 +286,8 @@ class EstimateService
             'estimate_number' => $serial->getNextNumber(),
             'sequence_number' => $serial->nextSequenceNumber,
             'customer_sequence_number' => $serial->nextCustomerSequenceNumber,
+            'series_number' => $serial->seriesActive() ? $serial->seriesNumber : null,
+            'number_year' => $serial->seriesActive() ? $serial->numberYear : null,
             'reference_number' => $estimate->reference_number,
             'customer_id' => $estimate->customer_id,
             'company_id' => $estimate->company_id,

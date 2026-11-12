@@ -46,6 +46,7 @@ use App\Http\Controllers\Company\General\ConfigController;
 use App\Http\Controllers\Company\General\FormatsController;
 use App\Http\Controllers\Company\General\InvitationResponseController;
 use App\Http\Controllers\Company\General\NotesController;
+use App\Http\Controllers\Company\General\NumberSeriesController;
 use App\Http\Controllers\Company\General\SearchController;
 use App\Http\Controllers\Company\General\SerialNumberController;
 use App\Http\Controllers\Company\Integration\IntegrationTokensController;
@@ -369,6 +370,13 @@ Route::prefix('/v1')->group(function () {
             Route::post('/integration-tokens', [IntegrationTokensController::class, 'store']);
 
             Route::delete('/integration-tokens/{id}', [IntegrationTokensController::class, 'destroy']);
+
+            // Document number series (owner, full-access session only)
+            // -------------------------------------------------
+
+            Route::get('/number-series', [NumberSeriesController::class, 'show']);
+
+            Route::put('/number-series', [NumberSeriesController::class, 'update']);
 
             // Events and webhooks (owner-only, token abilities events:read / webhooks:manage)
             // -------------------------------------------------

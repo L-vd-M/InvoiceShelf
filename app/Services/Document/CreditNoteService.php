@@ -174,8 +174,7 @@ class CreditNoteService
             ->setCustomer($creditNote->customer_id)
             ->reserveNextNumbers();
 
-        $creditNote->sequence_number = $serial->nextSequenceNumber;
-        $creditNote->customer_sequence_number = $serial->nextCustomerSequenceNumber;
+        $serial->applyTo($creditNote);
         $creditNote->credit_note_number = $serial->getNextNumber();
         $creditNote->unique_hash = Hashids::connection(Invoice::class)->encode($creditNote->id + 1000000);
         $creditNote->save();

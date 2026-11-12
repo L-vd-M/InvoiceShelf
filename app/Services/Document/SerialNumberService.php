@@ -28,6 +28,12 @@ class SerialNumberService
      */
     public $nextCustomerSequenceNumber;
 
+    public ?int $seriesNumber = null;
+
+    public ?int $numberYear = null;
+
+    private bool $existingDocument = false;
+
     /**
      * @return $this
      */
@@ -41,6 +47,12 @@ class SerialNumberService
     public function setModelObject($id = null)
     {
         $this->ob = $this->model::find($id);
+
+        if ($this->ob) {
+            $this->existingDocument = true;
+            $this->seriesNumber = $this->ob->series_number ?? null;
+            $this->numberYear = $this->ob->number_year ?? null;
+        }
 
         if ($this->ob && $this->ob->sequence_number) {
             $this->nextSequenceNumber = $this->ob->sequence_number;
@@ -78,6 +90,14 @@ class SerialNumberService
      */
     public function getNextNumber($data = null)
     {
+        if ($this->seriesActive()) {
+            if ($this->seriesNumber === null) {
+                $this->previewSeriesNumber();
+            }
+
+            return NumberSeries::format($this->seriesPrefix(), $this->seriesType(), $this->numberYear, $this->seriesNumber);
+        }
+
         $modelName = strtolower(class_basename($this->model));
         $settingKey = $modelName.'_number_format';
         $companyId = $this->company;
@@ -115,7 +135,54 @@ class SerialNumberService
             $this->setNextCustomerSequenceNumber();
         }
 
+        if ($this->seriesActive() && $this->seriesNumber === null && ! $this->existingDocument) {
+            $this->numberYear = NumberSeries::currentYear();
+            $this->seriesNumber = NumberSeries::reserve($this->company, $this->seriesType(), $this->numberYear);
+        }
+
         return $this;
+    }
+
+    /**
+     * Whether this company numbers the model's type as <PREFIX>-<TYPE>-YYYY-NNNNNN.
+     * A format typed into the form (preview of a custom format) bypasses the series.
+     */
+    public function seriesActive(): bool
+    {
+        return $this->company
+            && $this->seriesType() !== null
+            && ! request()->has('format')
+            && $this->seriesPrefix() !== null;
+    }
+
+    private function seriesType(): ?string
+    {
+        return NumberSeries::TYPES[strtolower(class_basename($this->model))] ?? null;
+    }
+
+    private function seriesPrefix(): ?string
+    {
+        return NumberSeries::prefix($this->company);
+    }
+
+    private function previewSeriesNumber(): void
+    {
+        $this->numberYear ??= NumberSeries::currentYear();
+        $this->seriesNumber = NumberSeries::peek($this->company, $this->seriesType(), $this->numberYear);
+    }
+
+    /**
+     * Copy every reserved number onto the document being issued.
+     */
+    public function applyTo($document): void
+    {
+        $document->sequence_number = $this->nextSequenceNumber;
+        $document->customer_sequence_number = $this->nextCustomerSequenceNumber;
+
+        if ($this->seriesActive() && ! $this->existingDocument) {
+            $document->series_number = $this->seriesNumber;
+            $document->number_year = $this->numberYear;
+        }
     }
 
     private function reserveSequenceNumber(): void
