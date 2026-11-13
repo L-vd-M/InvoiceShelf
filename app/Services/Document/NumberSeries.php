@@ -21,10 +21,17 @@ class NumberSeries
     /** model basename (lower case) => type code in the number */
     public const TYPES = ['estimate' => 'EST', 'invoice' => 'INV', 'creditnote' => 'CN'];
 
+    /** The business year turns over at midnight South African time, whatever the server timezone. */
+    public const TIMEZONE = 'Africa/Johannesburg';
+
     public const PREFIX_PATTERN = '/^[A-Z][A-Z0-9]{1,9}$/';
 
-    public static function prefix(int|string $company): ?string
+    public static function prefix(int|string|null $company): ?string
     {
+        if ($company === null) {
+            return null;
+        }
+
         $prefix = CompanySetting::getSetting(self::SETTING, $company);
 
         return $prefix ? (string) $prefix : null;
@@ -32,7 +39,7 @@ class NumberSeries
 
     public static function currentYear(): int
     {
-        return (int) now()->format('Y');
+        return (int) now(self::TIMEZONE)->format('Y');
     }
 
     public static function format(string $prefix, string $type, int $year, int $number): string

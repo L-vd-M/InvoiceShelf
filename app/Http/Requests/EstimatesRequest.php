@@ -138,7 +138,7 @@ class EstimatesRequest extends FormRequest
             $discount_per_item
         );
 
-        return collect($this->except('items', 'taxes', 'external_ref'))
+        return collect($this->except('items', 'taxes', 'external_ref', 'issue_number'))
             ->merge([
                 'creator_id' => $this->user()->id ?? null,
                 'status' => $this->has('estimateSend') ? Estimate::STATUS_SENT : Estimate::STATUS_DRAFT,

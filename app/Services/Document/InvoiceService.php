@@ -497,11 +497,14 @@ class InvoiceService
     {
         $invoice->load(['items', 'items.taxes', 'customer', 'taxes']);
 
-        $serial = (new SerialNumberService)
+        // series companies: the estimate is a draft and takes its number when sent
+        $series = NumberSeries::prefix($invoice->company_id) !== null;
+        $serial = $series ? null : (new SerialNumberService)
             ->setModel(new Estimate)
             ->setCompany($invoice->company_id)
             ->setCustomer($invoice->customer_id)
             ->reserveNextNumbers();
+        $estimateNumber = $series ? Invoice::draftReference() : $serial->getNextNumber();
 
         $exchangeRate = $invoice->exchange_rate;
 
@@ -509,12 +512,10 @@ class InvoiceService
             'creator_id' => $invoice->creator_id,
             'estimate_date' => Carbon::now()->format('Y-m-d'),
             'expiry_date' => Carbon::now()->addDays(30)->format('Y-m-d'),
-            'estimate_number' => $serial->getNextNumber(),
-            'sequence_number' => $serial->nextSequenceNumber,
-            'customer_sequence_number' => $serial->nextCustomerSequenceNumber,
-            'series_number' => $serial->seriesActive() ? $serial->seriesNumber : null,
-            'number_year' => $serial->seriesActive() ? $serial->numberYear : null,
-            'reference_number' => $serial->getNextNumber(),
+            'estimate_number' => $estimateNumber,
+            'sequence_number' => $serial?->nextSequenceNumber,
+            'customer_sequence_number' => $serial?->nextCustomerSequenceNumber,
+            'reference_number' => $estimateNumber,
             'customer_id' => $invoice->customer_id,
             'company_id' => $invoice->company_id,
             'template_name' => $invoice->getEstimateTemplateName(),

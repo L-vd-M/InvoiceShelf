@@ -4,8 +4,12 @@
 
 use App\Models\CompanySetting;
 use App\Models\Currency;
+use App\Models\Estimate;
+use App\Models\EstimateItem;
 use App\Models\Invoice;
+use App\Models\Tax;
 use App\Models\User;
+use App\Services\Document\EstimateService;
 use App\Services\Document\NumberSeries;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
@@ -178,4 +182,116 @@ test('new customer_ref without customer is 422, with customer it is created', fu
     $this->postJson('api/v1/invoices', ['customer_ref' => 'signage:NEW-9', 'customer' => ['name' => 'New One', 'email' => 'n@example.test'], 'total' => ($this->money)(1000)])
         ->assertCreated();
     $this->postJson('api/v1/invoices', ['customer_ref' => 'signage:NEW-9', 'total' => ($this->money)(1000)])->assertCreated();
+});
+
+describe('estimates are numbered when sent', function () {
+    beforeEach(function () {
+        ($this->setPrefix)();
+        Sanctum::actingAs($this->user, ['*']);
+        $this->withHeaders(['company' => $this->company->id]);
+        // the estimate factory draws numbers from the series itself, so build fixtures with the series off
+        $this->quietly = function (Closure $build) {
+            ($this->setPrefix)(null);
+            $built = $build();
+            ($this->setPrefix)();
+
+            return $built;
+        };
+        $this->makeDraft = fn () => ($this->quietly)(fn () => Estimate::factory()->create(['company_id' => $this->company->id, 'status' => Estimate::STATUS_DRAFT, 'estimate_number' => Invoice::draftReference(), 'sequence_number' => null]));
+    });
+
+    test('a form-created draft has a draft reference, whatever number the form sent', function () {
+        $payload = ($this->quietly)(fn () => Estimate::factory()->raw([
+            'estimate_number' => 'TDS-EST-2026-000099',
+            'company_id' => $this->company->id,
+            'items' => [EstimateItem::factory()->raw()],
+            'taxes' => [Tax::factory()->raw()],
+        ]));
+
+        $id = $this->postJson('api/v1/estimates', $payload)->assertCreated()->json('data.id');
+
+        expect(Estimate::find($id)->estimate_number)->toStartWith('DRAFT-')
+            ->and(NumberSeries::peek($this->company->id, 'EST', 2026))->toBe(1);
+    });
+
+    test('marking sent or accepted takes the next number; a second change keeps it', function () {
+        $a = ($this->makeDraft)();
+        $b = ($this->makeDraft)();
+
+        $this->postJson("api/v1/estimates/{$b->id}/status", ['status' => 'SENT'])->assertOk();
+        $this->postJson("api/v1/estimates/{$a->id}/accept")->assertOk();
+        $this->postJson("api/v1/estimates/{$b->id}/status", ['status' => 'VIEWED'])->assertOk();
+
+        expect($b->refresh()->estimate_number)->toBe('TDS-EST-2026-000001')
+            ->and($a->refresh()->estimate_number)->toBe('TDS-EST-2026-000002')
+            ->and($a->number_year)->toBe(2026);
+    });
+
+    test('deleting drafts leaves no gap', function () {
+        $drafts = [($this->makeDraft)(), ($this->makeDraft)(), ($this->makeDraft)()];
+        $this->postJson('api/v1/estimates/delete', ['ids' => [$drafts[0]->id, $drafts[1]->id], 'reason_code' => 'duplicate'])->assertOk();
+
+        $this->postJson("api/v1/estimates/{$drafts[2]->id}/status", ['status' => 'SENT'])->assertOk();
+
+        expect($drafts[2]->refresh()->estimate_number)->toBe('TDS-EST-2026-000001');
+    });
+
+    test('editing a numbered estimate keeps its number', function () {
+        $draft = ($this->makeDraft)();
+        $this->postJson("api/v1/estimates/{$draft->id}/status", ['status' => 'SENT'])->assertOk();
+        $number = $draft->refresh()->estimate_number;
+        $draft->load('items');
+
+        $payload = ($this->quietly)(fn () => Estimate::factory()->raw([
+            'estimate_number' => 'EST-HACK', 'company_id' => $this->company->id, 'customer_id' => $draft->customer_id,
+            'items' => [EstimateItem::factory()->raw()], 'taxes' => [Tax::factory()->raw()],
+        ]));
+        $this->putJson("api/v1/estimates/{$draft->id}", $payload)->assertOk();
+
+        expect($draft->refresh()->estimate_number)->toBe($number);
+    });
+
+    test('a company without a prefix still numbers estimates at creation', function () {
+        ($this->setPrefix)(null);
+        $payload = Estimate::factory()->raw([
+            'estimate_number' => 'EST-000777', 'company_id' => $this->company->id,
+            'items' => [EstimateItem::factory()->raw()], 'taxes' => [Tax::factory()->raw()],
+        ]);
+        $id = $this->postJson('api/v1/estimates', $payload)->assertCreated()->json('data.id');
+
+        expect(Estimate::find($id)->estimate_number)->toBe('EST-000777');
+    });
+
+    test('parallel sends never share a number', function () {
+        $drafts = array_map(fn () => ($this->makeDraft)(), range(1, 25));
+        $service = app(EstimateService::class);
+
+        foreach ($drafts as $draft) {
+            $service->issueNumber(Estimate::find($draft->id));
+            $service->issueNumber(Estimate::find($draft->id));
+        }
+
+        $numbers = Estimate::whereIn('id', collect($drafts)->pluck('id'))->pluck('estimate_number')->all();
+        expect(array_unique($numbers))->toHaveCount(25)
+            ->and(NumberSeries::peek($this->company->id, 'EST', 2026))->toBe(26);
+    });
+});
+
+test('the year turns over at midnight in Johannesburg, not UTC', function () {
+    ($this->setPrefix)();
+    ($this->asIntegration)();
+    Carbon::setTestNow('2026-12-31 22:30:00'); // 00:30 on 1 January in SAST
+
+    expect(($this->issueInvoice)()->json('number'))->toBe('TDS-INV-2027-000001');
+
+    Carbon::setTestNow('2026-12-31 21:30:00'); // 23:30 on 31 December in SAST
+    expect(($this->issueInvoice)()->json('number'))->toBe('TDS-INV-2026-000001');
+});
+
+test('the number series is described in the served OpenAPI document', function () {
+    $spec = $this->getJson('api/v1/openapi.json')->assertOk()->json();
+
+    expect($spec['paths']['/number-series'])->toHaveKeys(['get', 'put'])
+        ->and($spec['components']['schemas'])->toHaveKeys(['NumberSeries', 'NumberSeriesUpdate', 'NumberSeriesCounter'])
+        ->and($spec['paths']['/number-series']['put']['responses'])->toHaveKeys(['200', '403', '422']);
 });

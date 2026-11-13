@@ -1143,6 +1143,82 @@
         }
       }
     },
+    "/number-series": {
+      "get": {
+        "operationId": "getNumberSeries",
+        "tags": [
+          "operations"
+        ],
+        "summary": "Business prefix and next number per document type",
+        "description": "Numbers are `<PREFIX>-<TYPE>-YYYY-NNNNNN`, gap-free per company, type and year. Owner with a session or full-access token only; scoped integration tokens get 403.",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "series state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NumberSeries"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateNumberSeries",
+        "tags": [
+          "operations"
+        ],
+        "summary": "Set the business prefix and continue existing sequences",
+        "description": "Owner with a session or full-access token only. `next` can only move a counter up (a value at or below the last issued number answers 422), so a number is never reused; unknown type codes and malformed prefixes answer 422.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NumberSeriesUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "series state after the change",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NumberSeries"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
     "/audit-log": {
       "get": {
         "operationId": "auditLog",
@@ -1481,6 +1557,22 @@
             "pattern": "^[A-Z0-9-]{3,40}$",
             "description": "shadow mode, needs ability documents:shadow (contracts 1.2)"
           },
+          "customer": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              }
+            },
+            "description": "creates the customer when customer_ref is source:id and unknown"
+          },
           "external_ref": {
             "type": "object",
             "required": [
@@ -1540,22 +1632,6 @@
                 }
               }
             }
-          },
-          "customer": {
-            "type": "object",
-            "required": [
-              "name"
-            ],
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "email": {
-                "type": "string",
-                "format": "email"
-              }
-            },
-            "description": "creates the customer when customer_ref is source:id and unknown"
           },
           "reference_number": {
             "type": "string"
@@ -1822,6 +1898,115 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "NumberSeriesCounter": {
+        "type": "object",
+        "required": [
+          "last_issued",
+          "next",
+          "next_number"
+        ],
+        "properties": {
+          "last_issued": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "highest number issued for the year (0 = none)"
+          },
+          "next": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "next_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "the exact number the next document gets, e.g. TDS-INV-2026-000001; null while no prefix is set"
+          }
+        }
+      },
+      "NumberSeries": {
+        "type": "object",
+        "required": [
+          "prefix",
+          "year",
+          "series"
+        ],
+        "properties": {
+          "prefix": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z][A-Z0-9]{1,9}$",
+            "description": "business prefix; null = legacy numbering (INV-000001)"
+          },
+          "year": {
+            "type": "integer"
+          },
+          "series": {
+            "type": "object",
+            "required": [
+              "EST",
+              "INV",
+              "CN"
+            ],
+            "description": "per document type: EST estimates, INV invoices, CN credit notes",
+            "properties": {
+              "EST": {
+                "$ref": "#/components/schemas/NumberSeriesCounter"
+              },
+              "INV": {
+                "$ref": "#/components/schemas/NumberSeriesCounter"
+              },
+              "CN": {
+                "$ref": "#/components/schemas/NumberSeriesCounter"
+              }
+            }
+          }
+        }
+      },
+      "NumberSeriesUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "prefix": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z][A-Z0-9]{1,9}$",
+            "description": "applies to documents numbered afterwards; issued numbers never change"
+          },
+          "year": {
+            "type": "integer",
+            "minimum": 2000,
+            "maximum": 2999,
+            "description": "year the `next` values apply to (default: current year, Africa/Johannesburg)"
+          },
+          "next": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "continue an existing sequence: the next document of that type gets this number",
+            "properties": {
+              "EST": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 999999
+              },
+              "INV": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 999999
+              },
+              "CN": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 999999
+              }
+            }
           }
         }
       }

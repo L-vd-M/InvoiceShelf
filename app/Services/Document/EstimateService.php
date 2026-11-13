@@ -48,9 +48,17 @@ class EstimateService
         $estimate = Estimate::create($data);
         $estimate->unique_hash = Hashids::connection(Estimate::class)->encode($estimate->id);
 
-        // shadow mode (supplied_number): the legacy system issued the number, the series counter is not consumed
         if ($request->filled('supplied_number')) {
+            // shadow mode: the legacy system issued the number, the series counter is not consumed
             $estimate->save();
+        } elseif (NumberSeries::prefix($estimate->company_id) !== null) {
+            // series companies: a draft carries a draft reference and takes its gap-free number when sent
+            $estimate->estimate_number = Invoice::draftReference();
+            $estimate->save();
+
+            if ($data['status'] !== Estimate::STATUS_DRAFT || $request->boolean('issue_number')) {
+                $this->issueNumber($estimate);
+            }
         } else {
             $serial = (new SerialNumberService)
                 ->setModel($estimate)
@@ -59,12 +67,6 @@ class EstimateService
                 ->reserveNextNumbers();
 
             $serial->applyTo($estimate);
-
-            if ($serial->seriesActive()) {
-                // the series is authoritative: a number previewed or typed by the client is replaced
-                $estimate->estimate_number = $serial->getNextNumber();
-            }
-
             $estimate->save();
         }
 
@@ -99,6 +101,11 @@ class EstimateService
     private function updateInTransaction(Estimate $estimate, Request $request): Estimate
     {
         $data = $request->getEstimatePayload();
+
+        if (NumberSeries::prefix($estimate->company_id) !== null) {
+            // the series owns the number; a number typed or previewed in the form never overwrites it
+            unset($data['estimate_number']);
+        }
 
         $serial = (new SerialNumberService)
             ->setModel($estimate)
@@ -160,8 +167,44 @@ class EstimateService
         return $data;
     }
 
+    /**
+     * Series companies: take the next gap-free number (drafts have none yet). Idempotent; legacy
+     * companies and shadow-mode numbers are left alone.
+     */
+    public function issueNumber(Estimate $estimate): Estimate
+    {
+        if (NumberSeries::prefix($estimate->company_id) === null) {
+            return $estimate;
+        }
+
+        $issued = DB::transaction(function () use ($estimate) {
+            $locked = Estimate::whereKey($estimate->id)->lockForUpdate()->firstOrFail();
+
+            if (! str_starts_with((string) $locked->estimate_number, 'DRAFT-')) {
+                return $locked;
+            }
+
+            $serial = (new SerialNumberService)
+                ->setModel($locked)
+                ->setCompany($locked->company_id)
+                ->setCustomer($locked->customer_id)
+                ->reserveNextNumbers();
+
+            $serial->applyTo($locked);
+            $locked->estimate_number = $serial->getNextNumber();
+            $locked->save();
+
+            return $locked;
+        });
+
+        return $estimate->setRawAttributes($issued->getAttributes(), true);
+    }
+
     public function send(Estimate $estimate, array $data): array
     {
+        $this->issueNumber($estimate);
+        $estimate->refresh();
+
         $data = $this->sendEstimateData($estimate, $data);
 
         // render once: the attachment and the revision hash are the same bytes (with attachments off, the customer opens the portal link and the revision keeps the rendered file)
@@ -258,7 +301,8 @@ class EstimateService
     {
         $date = Carbon::now();
 
-        $serial = (new SerialNumberService)
+        $series = NumberSeries::prefix($estimate->company_id) !== null;
+        $serial = $series ? null : (new SerialNumberService)
             ->setModel($estimate)
             ->setCompany($estimate->company_id)
             ->setCustomer($estimate->customer_id)
@@ -283,11 +327,9 @@ class EstimateService
         $newEstimate = Estimate::create([
             'estimate_date' => $date->format('Y-m-d'),
             'expiry_date' => $expiryDate,
-            'estimate_number' => $serial->getNextNumber(),
-            'sequence_number' => $serial->nextSequenceNumber,
-            'customer_sequence_number' => $serial->nextCustomerSequenceNumber,
-            'series_number' => $serial->seriesActive() ? $serial->seriesNumber : null,
-            'number_year' => $serial->seriesActive() ? $serial->numberYear : null,
+            'estimate_number' => $series ? Invoice::draftReference() : $serial->getNextNumber(),
+            'sequence_number' => $serial?->nextSequenceNumber,
+            'customer_sequence_number' => $serial?->nextCustomerSequenceNumber,
             'reference_number' => $estimate->reference_number,
             'customer_id' => $estimate->customer_id,
             'company_id' => $estimate->company_id,
@@ -441,6 +483,11 @@ class EstimateService
     {
         DB::transaction(function () use ($estimate, $status) {
             $previous = $estimate->status;
+
+            if ($previous === Estimate::STATUS_DRAFT && $status !== Estimate::STATUS_DRAFT) {
+                $this->issueNumber($estimate);
+            }
+
             $estimate->update(['status' => $status]);
 
             if ($status === $previous) {

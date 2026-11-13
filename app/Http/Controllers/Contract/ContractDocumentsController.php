@@ -315,6 +315,8 @@ class ContractDocumentsController extends Controller
             'expiry_date' => $input['expiry_date'] ?? now()->addDays(14)->format('Y-m-d'),
             'estimate_number' => $number,
             'supplied_number' => $supplied,
+            // the contract has no separate send step: an API quote is numbered when it is created
+            'issue_number' => true,
             'reference_number' => $input['reference_number'] ?? null,
             'notes' => $input['notes'] ?? null,
             'external_ref' => $ext,
